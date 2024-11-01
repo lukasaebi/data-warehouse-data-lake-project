@@ -1,0 +1,17 @@
+[project]
+name = "data-warehouse-data-lake-project"
+version = "0.1.0"
+description = "Group project for the Data Warehouse and Data Lake Systems course at HSLU."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "apache-airflow-providers-amazon>=9,<10",
+    "boto3>=1.35.0,<1.36.0",
+    "ipykernel>=6.29.0,<7",
+    "numpy<2",
+    "pandas>=2,<3",
+    "pillow>=10,<12",
+    "python-dotenv>=1.0.1,<2",
+    "pyyaml>=6.0.2,<7",
+    "requests>=2.32.3,<3",
+]
