@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
-
 import requests
 import os
 from dotenv import load_dotenv
@@ -11,12 +5,8 @@ import time
 import pandas as pd
 import import_ipynb
 
-# In[4]:
-
 
 import open_weather_coordinates
-
-# In[5]:
 
 
 coordinates = {}
@@ -25,7 +15,7 @@ for city in open_weather_coordinates.cities_coordinates:
     city_name = city["city_name"]
     coordinates[city_name] = {"lat":city["lat"], "lon": city["lon"]}
 
-# In[ ]:
+
 
 
 # Lade Umgebungsvariablen aus der .env-Datei (z. B. API-Schlüssel)
@@ -34,13 +24,10 @@ load_dotenv()
 # API-Schlüssel aus der .env-Datei laden
 api_key = os.getenv('API_KEY')
 
-# In[ ]:
-
 
 # Berechne den Unix-Zeitstempel von vor 24 Stunden
 #start = current_time - (7*86400)  # 24 Stunden = 86400 Sekunden
 
-# In[42]:
 
 
 def fetch_weather(coordinates, api_key):
@@ -79,8 +66,6 @@ def fetch_weather(coordinates, api_key):
         all_data.append({place: place_data})  # Wochenweise Daten für den Ort hinzufügen
 
     return all_data  # Gib die gesammelten Daten zurück
-
-# In[41]:
 
 
 data = fetch_weather(coordinates, api_key)

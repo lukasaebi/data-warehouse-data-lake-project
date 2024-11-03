@@ -1,30 +1,18 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import requests
 import os
 from dotenv import load_dotenv
 import time
 import import_ipynb
 
-# In[2]:
-
 
 #importieren der Koordinaten der Städte
 import open_weather_coordinates
-
-# In[3]:
 
 
 coordinates = {}
 for city in open_weather_coordinates.cities_coordinates:
     city_name = city["city_name"]
     coordinates[city_name] = {"lat": city["lat"], "lon": city["lon"]}
-
-# In[ ]:
 
 
 # Lade Umgebungsvariablen aus der .env-Datei (z. B. API-Schlüssel)
@@ -33,8 +21,6 @@ load_dotenv()
 # API-Schlüssel aus der .env-Datei laden
 api_key = os.getenv('API_KEY')
 
-
-# In[15]:
 
 
 def fetch_air_pollution(coordinates, api_key):
@@ -74,7 +60,6 @@ def fetch_air_pollution(coordinates, api_key):
 
     return all_data  # Gib die gesammelten Daten zurück
 
-# In[14]:
 
 
 polution_data = fetch_air_pollution(coordinates, api_key)
