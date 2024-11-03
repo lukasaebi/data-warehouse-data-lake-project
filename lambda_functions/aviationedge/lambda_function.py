@@ -1,0 +1,3 @@
+# sh lambda_functions/aviationedge/create_or_update_lambda_function.sh lambda_functions/aviationedge/airport_requests aviationairportlambda 871770651017 aviation-edge-lambda-repo
+
+
