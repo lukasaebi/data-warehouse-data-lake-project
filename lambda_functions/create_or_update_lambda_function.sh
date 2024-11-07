@@ -10,9 +10,11 @@ set -e
 # Arguments
 LAMBDA_DIR=$1
 LAMBDA_FUNCTION_NAME=$2
-AWS_ACCOUNT_ID=$3
-AWS_ECR_REPOSITORY=$4
-DOCKER_IMAGE_NAME=${5:-$LAMBDA_FUNCTION_NAME}
+AWS_ECR_REPOSITORY=$3
+DOCKER_IMAGE_NAME=${4:-$LAMBDA_FUNCTION_NAME}
+
+# Retrieve AWS Account ID
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
 # Build the Docker image
 docker build --platform linux/amd64 -t $DOCKER_IMAGE_NAME $LAMBDA_DIR

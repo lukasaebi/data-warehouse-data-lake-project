@@ -75,13 +75,14 @@ Create your own lambda function logic by creating a directory in `lambda_functio
 ### 6. Create or Update your Lambda Function
 To create or update Lambda functios run the following command from the root of the project (i.e. the `data-warehouse-data-lake-project` directory):
 ```bash
-sh lambda_functions/create_or_update_lambda_function.sh <API_NAME> <AWS_ACCOUNT_ID> <AWS_ECR_REPOSITORY> (<DOCKER_IMAGE_NAME> <LAMBDA_FUNCTION_NAME>)
+bash lambda_functions/create_or_update_lambda_function.sh <LAMBDA_DIR> <LAMBDA_FUNCTION_NAME> <AWS_ECR_REPOSITORY> (<DOCKER_IMAGE_NAME>)
 ```
 The values within the <> should be replaced by your actual values.
 
 Parameters:
 * **LAMBDA_DIR**: The path to the directory of your lambda function from the `lambda_functions/create_or_update_lambda_function.sh` file. I.e. if your lambda function resides in `lambda_functions/some_api/some_lambda_function` you should pass `some_api/some_lambda_function`.
 * **LAMBDA_FUNCTION_NAME**: Name of your lambda function in AWS.
-* **AWS_ACCOUNT_ID**: ID of your AWS account. You can see it in the top-right corner when you log into AWS.
 * **AWS_ECR_REPOSITORY**: This is the name of your container registry. The container registry will be created when you first run the `lambda_functions/create_or_update_lambda_function.sh` script, i.e. you have to give it a name. You can name it whatever you want, but you should remember the name. Once the registry is created for your account, you should optimally use the same registry.
 * **DOCKER_IMAGE_NAME** (Optional): Name that your docker image should have. Doesn't really matter, but choose something meaningful like <name-of-lambda-function>. If not set, defaults to `LAMBDA_FUNCTION_NAME`.
+
+> Deprecated: **AWS_ACCOUNT_ID** is NOT needed anymore! Was needed in an earlier version.
