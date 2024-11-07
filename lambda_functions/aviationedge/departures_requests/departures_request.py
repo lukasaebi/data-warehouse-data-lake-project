@@ -1,5 +1,5 @@
 """
-This code is used to get all historical flights (arrivals/departures) from the api based on the airports in s3-bucket
+This code is used to get all historical departure-flights from the api based on the airports in s3-bucket
 
 """
 
@@ -18,8 +18,8 @@ s3_client = boto3.client('s3')
 api_key = os.getenv("API_KEY")
 
 # date range
-date_from = datetime.strptime("2023-10-01", "%Y-%m-%d")
-date_to = datetime.strptime("2024-10-31", "%Y-%m-%d")
+date_to = datetime.now() - timedelta(days=1)
+date_from = date_to - timedelta(days=365)
 
 
 # Load iata codes from JSON
@@ -35,10 +35,9 @@ def generate_monthly_segments(start_date, end_date):
     current_date = start_date
     while current_date < end_date:
         # Get the last day of the month
-        month_end_date = (current_date.replace(day=1) + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-        segment_end_date = min(month_end_date, end_date)
-        segments.append((current_date.strftime("%Y-%m-%d"), segment_end_date.strftime("%Y-%m-%d")))
-        current_date = segment_end_date + timedelta(days=1)
+       month_end_date = min((current_date.replace(day=1) + timedelta(days=31)).replace(day=1) - timedelta(days=1), end_date)
+       segments.append((current_date.strftime("%Y-%m-%d"), month_end_date.strftime("%Y-%m-%d")))
+       current_date = month_end_date + timedelta(days=1)
     return segments
 
 # departure data for a specific IATA code
@@ -99,7 +98,6 @@ def lambda_handler(event, context):
                 upload_departure_data_to_s3(departure_data, target_bucket, s3_key)
             else:
                 print(f"Skipping {iata_code} for {start_date} to {end_date} due to missing data.")
-                continue
 
         # Log progress for each IATA code
         print(f"Completed data fetch and storage for {iata_code}")
