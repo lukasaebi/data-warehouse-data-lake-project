@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 import time
 import import_ipynb
 from datetime import datetime, timezone
-import boto
+import boto3
+import json
 
 #importieren der Koordinaten der Städte
 import open_weather_coordinates
@@ -89,9 +90,9 @@ def lambda_handler(event, context):
     try:
         s3_client.put_object(
             Bucket = S3_BUCKET_NAME,
-            KEY = s3_key, 
+            Key = s3_key, 
             Body = json.dumps(data), 
-            ContentType = "applicatio/json"
+            ContentType = "application/json"
         )
 
         return {
