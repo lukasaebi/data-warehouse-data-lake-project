@@ -19,7 +19,7 @@ api_key = os.getenv("API_KEY")
 
 # date range
 date_to = datetime.now() - timedelta(days=1)
-date_from = date_to - timedelta(days=365)
+date_from = date_to - timedelta(days=330)
 
 
 # Load iata codes from JSON
