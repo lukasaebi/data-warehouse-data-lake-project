@@ -1,0 +1,2 @@
+bucket_name: aviations3-departures
+iatacodes: ["BQH", "LCY", "LGW", "LHR", "LTN", "SEN", "STN", "BVA", "CDG", "LBG", "ORY", "POX", "XCR", "AMS", "MAD", "TOJ", "FRA", "HHN", "CIA", "FCO", "DME", "SVO", "VKO", "LIS", "DUB", "VIE", "ZRH"]
