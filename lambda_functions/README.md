@@ -1,4 +1,7 @@
-# Deploying AWS Lambda Functions with Container Images
+# Setting Up the Infrastructure
+
+<details>
+<summary>Deploying AWS Lambda Functions with Container Images</summary>
 
 **Important Documentation**:
 * Understand key Lambda concepts: https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-concepts.html#gettingstarted-concepts-dp
@@ -86,3 +89,43 @@ Parameters:
 * **DOCKER_IMAGE_NAME** (Optional): Name that your docker image should have. Doesn't really matter, but choose something meaningful like <name-of-lambda-function>. If not set, defaults to `LAMBDA_FUNCTION_NAME`.
 
 > Deprecated: **AWS_ACCOUNT_ID** is NOT needed anymore! Was needed in an earlier version.
+</details>
+
+<details>
+<summary>Creating Schedules for Lambda Functions</summary>
+Creating regular schedules for lambda functions consists of three different steps.
+
+1. **Event Rules** define the interval with which the function should be scheduled.
+2. **Permissions** define the actions that can be executed at the specified interval in the event rules.
+3. **Targets** connect the rule and the permission to the desired Lambda function.
+
+The bash script at `lambda_functions/setup_lambda_functions_schedule.sh` goes through all these steps sequentially and implements the following:
+
+1. Creates event rule for scheduling some lambda function to run daily 9:05 AM UTC in November and December (rule is called `DailyLambdaTrigger`).
+2. Permission created to invoke the Lambda function with the schedule defined in step 1.
+3. Specifies the lambda function that should be triggered with the rule from step 1.
+
+To schedule your Lambda function run:
+```bash
+bash lambda_functions/setup_lambda_function_schedule.sh <FUNCTION_NAME>
+```
+
+The script contains the following logic, represented with pseudo-python code.
+
+```python
+if event_rule exists:
+    skip
+else:
+    create event_rule()
+
+if permission for function_name exists:
+    skip
+else:
+    add_permissions_to_function()
+
+if target for function_name exists:
+    skip
+else:
+    define_target_function()
+```
+</details>
