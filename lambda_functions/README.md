@@ -53,10 +53,9 @@ aws_session_token=1234567890
 ```
 Copy the whole thing and paste it into a file under ~/.aws/credentials. You can do this with:
 ```bash
-nano ~/.aws/credentials
+bash update_aws_credentials.sh
 ```
-If the file already contains credentials, delete them.
-Then, press `Ctrl V`, `Enter`, `Ctrl X`, `Enter`.
+Follow the instructions in the command line.
 
 To check whether everything has worked as expected, execute:
 ```bash
@@ -66,14 +65,14 @@ This lists the content of the file you just edited.
 
 > Unfortunately this step of copying your AWS Credentials must be executed EVERY TIME your restart a lab session. The reason for this is that we have educational accounts and our secrets (the one's you copied) change with every restart. With real AWS accounts, this has to be done just once.
 
-# 5. Create Directory with you Lambda Function logic
+### 5. Create Directory with you Lambda Function logic
 Create your own lambda function logic by creating a directory in `lambda_functions`, on the same level as this README. Name it after your API, you will reuse the name in the next step. Bare minimum setup you need to have for this is:
 * **Dockerfile** containing all the dependencies of your Lambda function. Copy the `Dockerfile.template` in your directory, rename it to just `Dockerfile` and potentially add additional steps.
 * **Python file** containing the execution logic of you Lambda function.
     * Attention: The filename and the function name containing the logic must be filled in the CMD command in the Dockerfile.
 * **requirements.txt** containing the dependencies needed to run your python file
 
-# 6. Create or Update your Lambda Function
+### 6. Create or Update your Lambda Function
 To create or update Lambda functios run the following command from the root of the project (i.e. the `data-warehouse-data-lake-project` directory):
 ```bash
 sh lambda_functions/create_or_update_lambda_function.sh <API_NAME> <AWS_ACCOUNT_ID> <AWS_ECR_REPOSITORY> (<DOCKER_IMAGE_NAME> <LAMBDA_FUNCTION_NAME>)
