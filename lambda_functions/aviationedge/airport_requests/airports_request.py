@@ -24,7 +24,7 @@ def load_config():
     return config
 
 # API request for iatacode in iatacodes
-def api_data(iata_code):
+def api_request(iata_code):
     url = f"https://aviation-edge.com/v2/public/airportDatabase"
     params = {
         "key": api_key,
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
     all_data = {}
 
     for iata_code in iatacodes:
-        data = api_data(iata_code)
+        data = api_request(iata_code)
         all_data[iata_code] = data
     
     s3_key = f"aviation_edge_all_data.json"
