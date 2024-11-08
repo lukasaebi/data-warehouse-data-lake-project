@@ -85,7 +85,7 @@ The values within the <> should be replaced by your actual values.
 Parameters:
 * **LAMBDA_DIR**: The path to the directory of your lambda function from the `lambda_functions/create_or_update_lambda_function.sh` file. I.e. if your lambda function resides in `lambda_functions/some_api/some_lambda_function` you should pass `some_api/some_lambda_function`.
 * **LAMBDA_FUNCTION_NAME**: Name of your lambda function in AWS.
-* **AWS_ECR_REPOSITORY**: This is the name of your container registry. The container registry will be created when you first run the `lambda_functions/create_or_update_lambda_function.sh` script, i.e. you have to give it a name. You can name it whatever you want, but you should remember the name. Once the registry is created for your account, you should optimally use the same registry.
+* **AWS_ECR_REPOSITORY** (Optional): This is the repository name in your container registry. The repository will be created when you run the `lambda_functions/create_or_update_lambda_function.sh` script. Normally, it makes sense to have a repository per docker image. Therefore, it takes on the value of `LAMBDA_FUNCTION_NAME` by default. If there is no legit reason to use another name, don't provide this parameter.
 * **DOCKER_IMAGE_NAME** (Optional): Name that your docker image should have. Doesn't really matter, but choose something meaningful like <name-of-lambda-function>. If not set, defaults to `LAMBDA_FUNCTION_NAME`.
 
 > Deprecated: **AWS_ACCOUNT_ID** is NOT needed anymore! Was needed in an earlier version.
