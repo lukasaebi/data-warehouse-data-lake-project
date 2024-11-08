@@ -99,12 +99,13 @@ def upload_data_to_s3(data: dict, bucket_name: str, key: str) -> None:
 
 
 def lambda_handler(event, context):
+    with open("config.yaml", "r") as f:
+        config = yaml.safe_load(f)
+
     API_KEY = os.environ["TOMTOM_API_KEY"]
     S3_KEY = "geocode_data.json"
     BUCKET_NAME = config["bucket_name"]
 
-    with open("config.yaml", "r") as f:
-        config = yaml.safe_load(f)
 
     response_data = request_geodata_for_multiple_cities(config, API_KEY)
     data = postprocess_api_response(response_data)

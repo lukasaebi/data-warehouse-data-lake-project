@@ -30,4 +30,4 @@ ignore = [
 ]
 
 [tool.ruff.format]
-indent-style = "space"
+indent-style = "tab"
