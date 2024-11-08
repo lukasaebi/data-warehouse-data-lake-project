@@ -8,8 +8,8 @@ set -e
 LAMBDA_DIR=$1
 LAMBDA_FUNCTION_NAME=$2
 TIMEOUT=${3:-60}
-ECR_REPOSITORY_NAME=${3:-$LAMBDA_FUNCTION_NAME}
-DOCKER_IMAGE_NAME=${4:-$LAMBDA_FUNCTION_NAME}
+ECR_REPOSITORY_NAME=${4:-$LAMBDA_FUNCTION_NAME}
+DOCKER_IMAGE_NAME=${5:-$LAMBDA_FUNCTION_NAME}
 
 # Retrieve AWS Account ID
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -102,13 +102,13 @@ else
     while [ $retry_count -lt $max_retries ]; do
         if aws lambda update-function-configuration \
             --function-name "$LAMBDA_FUNCTION_NAME" \
-            --environment "$TIMEOUT" \
+            --timeout $TIMEOUT \
             --environment "$env_vars_string" \
             --no-cli-pager > /dev/null 2>&1; then
             success=true
             break
         else
-            echo "Failed to update environment variables. Retrying in 5 seconds..."
+            echo "Failed to update environment variables. Lambda function not ready yet. Retrying in 5 seconds..."
             ((retry_count++))
             sleep 5
         fi
