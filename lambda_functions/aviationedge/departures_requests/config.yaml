@@ -1,2 +1,2 @@
 bucket_name: aviations3-departures
-iatacodes: ["LCY", "LGW", "LHR", "LTN", "SEN", "STN", "BVA", "CDG", "ORY","AMS", "MAD", "FRA", "HHN", "FCO", "DME", "SVO", "VKO", "LIS", "DUB", "VIE", "ZRH"]
+iatacodes: ["LIS", "DUB", "VIE", "ZRH"]

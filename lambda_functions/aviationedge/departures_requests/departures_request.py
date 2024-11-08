@@ -17,9 +17,9 @@ load_dotenv()
 s3_client = boto3.client('s3')
 api_key = os.getenv("API_KEY")
 
-# date range
-date_to = datetime.now() - timedelta(days=1)
-date_from = date_to - timedelta(days=330)
+# date range: Manually setting date_to and date_from
+date_to = datetime.strptime("2024-10-31", "%Y-%m-%d")
+date_from = datetime.strptime("2023-12-01", "%Y-%m-%d")
 
 
 # Load iata codes from JSON
