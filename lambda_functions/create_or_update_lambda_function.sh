@@ -32,7 +32,9 @@ if aws ecr describe-repositories --repository-names "$ECR_REPOSITORY_NAME" > /de
     echo "Repository $ECR_REPOSITORY_NAME already exists."
 else
     echo "Repository $ECR_REPOSITORY_NAME does not exist. Creating repository..."
-    aws ecr create-repository --repository-name "$DOCKER_IMAGE_NAME"
+    aws ecr create-repository \
+      --repository-name "$DOCKER_IMAGE_NAME" \
+      --no-cli-pager
     echo "Repository $DOCKER_IMAGE_NAME created."
 fi
 
