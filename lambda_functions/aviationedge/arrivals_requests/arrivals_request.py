@@ -1,5 +1,5 @@
 """
-This code is used to get all historical departure-flights from the api based on the airports in s3-bucket.
+This code is used to get all historical arrival-flights from the api based on the airports in s3-bucket.
 Restricitions for API-call: max 365 days before today / max 20k flights per request / max handling time abaout 15 min
 """
 
@@ -39,13 +39,13 @@ def generate_weekly_segments(start_date, end_date):
         current_date = week_end_date + timedelta(days=1)
     return segments
 
-# Fetch departure data from the API for a given IATA code and date range
-def fetch_departure_data(iata_code, start_date, end_date):
+# Fetch arrivals data from the API for a given IATA code and date range
+def fetch_arrival_data(iata_code, start_date, end_date):
     url = "https://aviation-edge.com/v2/public/flightsHistory"
     params = {
         "key": api_key,
         "code": iata_code,
-        "type": "departure",
+        "type": "darrival",
         "date_from": start_date,
         "date_to": end_date
     }
@@ -61,7 +61,7 @@ def fetch_departure_data(iata_code, start_date, end_date):
             print(f"No data found for {iata_code} from {start_date} to {end_date}. Skipping this segment.")
             return None
         else:
-            print(f"Error fetching departure data for {iata_code} from {start_date} to {end_date}: {e}")
+            print(f"Error fetching arrival data for {iata_code} from {start_date} to {end_date}: {e}")
             return None
     except requests.exceptions.RequestException as e:
         print(f"Request error for {iata_code} from {start_date} to {end_date}: {e}")
@@ -70,7 +70,7 @@ def fetch_departure_data(iata_code, start_date, end_date):
 # Upload data to S3 bucket
 # For each city one subfolder with corresponding iatacodes in it
 # one file per week for each iatacode
-def upload_departure_data_to_s3(data, bucket_name, s3_key):
+def upload_arrival_data_to_s3(data, bucket_name, s3_key):
     s3_client.put_object(
         Bucket=bucket_name,
         Key=s3_key,
@@ -78,7 +78,7 @@ def upload_departure_data_to_s3(data, bucket_name, s3_key):
         ContentType='application/json'
     )
 
-# Main Lambda handler for departures
+# Main Lambda handler for arrivals
 def lambda_handler(event, context):
     cities = load_cities_from_config()
     target_bucket = "aviations3"
@@ -97,16 +97,16 @@ def lambda_handler(event, context):
         for iata_code in filtered_iata_codes:
             weekly_segments = generate_weekly_segments(date_from, date_to)
             for week_num, (start_date, end_date) in enumerate(weekly_segments, start=1):
-                data = fetch_departure_data(iata_code, start_date, end_date)
+                data = fetch_arrival_data(iata_code, start_date, end_date)
                 if data:
                     # Include iata_code in the S3 key
-                    s3_key = f"departures/{city}/{iata_code}_week{week_num}.json"
-                    upload_departure_data_to_s3(data, target_bucket, s3_key)
+                    s3_key = f"arrivals/{city}/{iata_code}_week{week_num}.json"
+                    upload_arrival_data_to_s3(data, target_bucket, s3_key)
                     print(f"Stored data for {iata_code} in {s3_key}")
                 else:
                     print(f"No data for {iata_code} in {city} from {start_date} to {end_date}")
 
     return {
         "statusCode": 200,
-        "body": json.dumps("Weekly departure data stored in S3.")
+        "body": json.dumps("Weekly arrival data stored in S3.")
     }
