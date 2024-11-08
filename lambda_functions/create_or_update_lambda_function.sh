@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# Prerequisites:
-# 1. AWS CLI must be installed and configured
-# 2. Docker must be installed
-# 3. FUNCTION_NAME must be the name of the file without the extension
+# Prerequisites: See `lambda_functions/README.md`
 
 set -e
 
@@ -27,15 +24,15 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 echo "Authenticated to Amazon ECR with username=AWS & password-stdin=$AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com."
 
 # Create Repository in Amazon ECR IF NOT EXISTS
-echo "Creating repository in Amazon ECR if it does not exist..."
+echo "Creating repository $ECR_REPOSITORY_NAME in Amazon ECR if it does not exist..."
 if aws ecr describe-repositories --repository-names "$ECR_REPOSITORY_NAME" > /dev/null 2>&1; then
     echo "Repository $ECR_REPOSITORY_NAME already exists."
 else
     echo "Repository $ECR_REPOSITORY_NAME does not exist. Creating repository..."
     aws ecr create-repository \
-      --repository-name "$DOCKER_IMAGE_NAME" \
+      --repository-name "$ECR_REPOSITORY_NAME" \
       --no-cli-pager
-    echo "Repository $DOCKER_IMAGE_NAME created."
+    echo "Repository $ECR_REPOSITORY_NAME created."
 fi
 
 # Tag the Docker image
@@ -66,3 +63,61 @@ else
     --no-cli-pager
   echo "Lambda function $LAMBDA_FUNCTION_NAME successfully created."
 fi
+
+# Path to the .env file
+ENV_FILE="$LAMBDA_DIR/.env"
+
+# Check if the .env file exists
+if [ ! -f "$ENV_FILE" ]; then
+    echo "WARNING: .env file not found! Environment variables cannot be uploaded!" \
+    "To upload environment variables, create a .env file in the Lambda function directory."
+else
+    echo "Using .env file at: $ENV_FILE"
+
+    # Convert the file to Unix line endings in case it has DOS line endings
+    dos2unix "$ENV_FILE" 2>/dev/null
+
+    # Build the Variables string for the AWS CLI command
+    env_vars_string="Variables={"
+
+    # Read each line in the .env file and append to env_vars_string
+    while IFS='=' read -r key value || [ -n "$key" ]; do
+        # Skip empty lines and comments
+        if [ -n "$key" ] && [[ ! "$key" =~ ^# ]]; then
+            env_vars_string+="$key=$value,"
+        fi
+    done < "$ENV_FILE"
+
+    # Remove the trailing comma and close the curly brace
+    env_vars_string="${env_vars_string%,}}"
+
+    # Update Lambda function environment variables with retry logic
+    echo "Updating Lambda function environment variables..."
+    retry_count=0
+    max_retries=6
+    success=false
+
+    set +e
+    while [ $retry_count -lt $max_retries ]; do
+        if aws lambda update-function-configuration \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --environment "$env_vars_string" \
+            --no-cli-pager > /dev/null 2>&1; then
+            success=true
+            break
+        else
+            echo "Failed to update environment variables. Retrying in 5 seconds..."
+            ((retry_count++))
+            sleep 5
+        fi
+    done
+
+    set -e
+    if [ "$success" = true ]; then
+        echo "Lambda function environment variables successfully updated."
+    else
+        echo "ERROR: Failed to update Lambda function environment variables after multiple attempts."
+    fi
+fi
+
+echo "All steps completed."
