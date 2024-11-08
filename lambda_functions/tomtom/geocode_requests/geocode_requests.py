@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 import boto3
 import requests
@@ -68,6 +69,7 @@ def request_geodata_for_multiple_cities(config: dict, api_key: str) -> list[dict
         )
 
         extracted_cities.append(exctract_city_data(response, city, code))
+        time.sleep(0.25)
     return extracted_cities
 
 
@@ -101,7 +103,7 @@ def lambda_handler(event, context):
     S3_KEY = "geocode_data.json"
     BUCKET_NAME = "tomtom-api-data"
 
-    with open("config.json", "r") as f:
+    with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
 
     response_data = request_geodata_for_multiple_cities(config, API_KEY)
