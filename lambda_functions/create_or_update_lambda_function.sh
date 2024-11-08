@@ -7,6 +7,7 @@ set -e
 # Arguments
 LAMBDA_DIR=$1
 LAMBDA_FUNCTION_NAME=$2
+TIMEOUT=${3:-60}
 ECR_REPOSITORY_NAME=${3:-$LAMBDA_FUNCTION_NAME}
 DOCKER_IMAGE_NAME=${4:-$LAMBDA_FUNCTION_NAME}
 
@@ -101,6 +102,7 @@ else
     while [ $retry_count -lt $max_retries ]; do
         if aws lambda update-function-configuration \
             --function-name "$LAMBDA_FUNCTION_NAME" \
+            --environment "$TIMEOUT" \
             --environment "$env_vars_string" \
             --no-cli-pager > /dev/null 2>&1; then
             success=true
