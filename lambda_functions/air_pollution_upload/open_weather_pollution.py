@@ -28,17 +28,15 @@ api_key = os.getenv('API_KEY')
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 
 
-
 def fetch_air_pollution(coordinates, api_key):
     # Aktuelles Datum in Unix-Timestamp umwandeln
     current_time = int(time.time())  # Aktueller Unix-Zeitstempel
     one_week_in_seconds = 7 * 86400
-    all_data = []  # Liste zum Speichern der Daten von allen Koordinaten
+    all_data = []  # Liste zum Speichern der Daten in flacher Struktur
 
     for place, coord in coordinates.items():
         lat = coord['lat']
         lon = coord['lon']
-        place_data = []  # Speichert die Daten für diesen Ort über mehrere Wochen
 
         for week in range(52): 
             # Berechne den Start- und Endzeitpunkt für jede Woche
@@ -54,17 +52,28 @@ def fetch_air_pollution(coordinates, api_key):
 
                 if response.status_code == 200:
                     data = response.json()
-                    print(f"API Response for Place {place} ({lat}, {lon}) Week {week+1}:", data)
-                    place_data.append({"Week": week + 1, "Data": data})  # Wochendaten zu place_data hinzufügen
+
+                    # Iteriere durch jede Stunde in den erhaltenen Daten
+                    for entry in data.get("list", []):
+                        observation = {
+                            "place": place,
+                            "latitude": lat,
+                            "longitude": lon,
+                            "week": week + 1,
+                            "timestamp": entry.get("dt"),
+                            "date": time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(entry['dt'])),
+                            "air_quality_index": entry["main"]["aqi"],
+                            "components": entry["components"]
+                        }
+                        # Füge jede stündliche Beobachtung der flachen Struktur hinzu
+                        all_data.append(observation)
                 else:
                     print(f"Fehlerhafte Anfrage für {place} ({lat}, {lon}). Statuscode: {response.status_code}")
 
             except requests.exceptions.RequestException as e:
                 print(f"Ein Fehler ist aufgetreten für {place} ({lat}, {lon}): {e}")
-        
-        all_data.append({place: place_data})  # Wochenweise Daten für den Ort hinzufügen
 
-    return all_data  # Gib die gesammelten Daten zurück
+    return all_data  # Gib die flache Struktur zurück
 
 
 
