@@ -119,3 +119,8 @@ def lambda_handler(event, context):
 
 
 #polution_data = fetch_air_pollution(coordinates, api_key)
+
+
+if __name__ == "__main__":
+    result = lambda_handler({}, None)
+    print(result)
