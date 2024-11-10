@@ -1,0 +1,4 @@
+requests
+python-dotenv
+import-ipynb
+boto3
