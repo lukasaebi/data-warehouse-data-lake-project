@@ -1,4 +1,7 @@
-# Deploying AWS Lambda Functions with Container Images
+# Setting Up the Infrastructure
+
+<details>
+<summary>Deploying AWS Lambda Functions with Container Images</summary>
 
 **Important Documentation**:
 * Understand key Lambda concepts: https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-concepts.html#gettingstarted-concepts-dp
@@ -53,10 +56,9 @@ aws_session_token=1234567890
 ```
 Copy the whole thing and paste it into a file under ~/.aws/credentials. You can do this with:
 ```bash
-nano ~/.aws/credentials
+bash update_aws_credentials.sh
 ```
-If the file already contains credentials, delete them.
-Then, press `Ctrl V`, `Enter`, `Ctrl X`, `Enter`.
+Follow the instructions in the command line.
 
 To check whether everything has worked as expected, execute:
 ```bash
@@ -66,23 +68,64 @@ This lists the content of the file you just edited.
 
 > Unfortunately this step of copying your AWS Credentials must be executed EVERY TIME your restart a lab session. The reason for this is that we have educational accounts and our secrets (the one's you copied) change with every restart. With real AWS accounts, this has to be done just once.
 
-# 5. Create Directory with you Lambda Function logic
+### 5. Create Directory with you Lambda Function logic
 Create your own lambda function logic by creating a directory in `lambda_functions`, on the same level as this README. Name it after your API, you will reuse the name in the next step. Bare minimum setup you need to have for this is:
 * **Dockerfile** containing all the dependencies of your Lambda function. Copy the `Dockerfile.template` in your directory, rename it to just `Dockerfile` and potentially add additional steps.
 * **Python file** containing the execution logic of you Lambda function.
     * Attention: The filename and the function name containing the logic must be filled in the CMD command in the Dockerfile.
 * **requirements.txt** containing the dependencies needed to run your python file
 
-# 6. Create or Update your Lambda Function
+### 6. Create or Update your Lambda Function
 To create or update Lambda functios run the following command from the root of the project (i.e. the `data-warehouse-data-lake-project` directory):
 ```bash
-sh lambda_functions/create_or_update_lambda_function.sh <API_NAME> <AWS_ACCOUNT_ID> <AWS_ECR_REPOSITORY> (<DOCKER_IMAGE_NAME> <LAMBDA_FUNCTION_NAME>)
+bash lambda_functions/create_or_update_lambda_function.sh <LAMBDA_DIR> <LAMBDA_FUNCTION_NAME> <AWS_ECR_REPOSITORY> (<DOCKER_IMAGE_NAME>)
 ```
 The values within the <> should be replaced by your actual values.
 
 Parameters:
 * **LAMBDA_DIR**: The path to the directory of your lambda function from the `lambda_functions/create_or_update_lambda_function.sh` file. I.e. if your lambda function resides in `lambda_functions/some_api/some_lambda_function` you should pass `some_api/some_lambda_function`.
 * **LAMBDA_FUNCTION_NAME**: Name of your lambda function in AWS.
-* **AWS_ACCOUNT_ID**: ID of your AWS account. You can see it in the top-right corner when you log into AWS.
-* **AWS_ECR_REPOSITORY**: This is the name of your container registry. The container registry will be created when you first run the `lambda_functions/create_or_update_lambda_function.sh` script, i.e. you have to give it a name. You can name it whatever you want, but you should remember the name. Once the registry is created for your account, you should optimally use the same registry.
+* **AWS_ECR_REPOSITORY** (Optional): This is the repository name in your container registry. The repository will be created when you run the `lambda_functions/create_or_update_lambda_function.sh` script. Normally, it makes sense to have a repository per docker image. Therefore, it takes on the value of `LAMBDA_FUNCTION_NAME` by default. If there is no legit reason to use another name, don't provide this parameter.
 * **DOCKER_IMAGE_NAME** (Optional): Name that your docker image should have. Doesn't really matter, but choose something meaningful like <name-of-lambda-function>. If not set, defaults to `LAMBDA_FUNCTION_NAME`.
+
+> Deprecated: **AWS_ACCOUNT_ID** is NOT needed anymore! Was needed in an earlier version.
+</details>
+
+<details>
+<summary>Creating Schedules for Lambda Functions</summary>
+Creating regular schedules for lambda functions consists of three different steps.
+
+1. **Event Rules** define the interval with which the function should be scheduled.
+2. **Permissions** define the actions that can be executed at the specified interval in the event rules.
+3. **Targets** connect the rule and the permission to the desired Lambda function.
+
+The bash script at `lambda_functions/setup_lambda_functions_schedule.sh` goes through all these steps sequentially and implements the following:
+
+1. Creates event rule for scheduling some lambda function to run daily 9:05 AM UTC in November and December (rule is called `DailyLambdaTrigger`).
+2. Permission created to invoke the Lambda function with the schedule defined in step 1.
+3. Specifies the lambda function that should be triggered with the rule from step 1.
+
+To schedule your Lambda function run:
+```bash
+bash lambda_functions/setup_lambda_function_schedule.sh <FUNCTION_NAME>
+```
+
+The script contains the following logic, represented with pseudo-python code.
+
+```python
+if event_rule exists:
+    skip
+else:
+    create event_rule()
+
+if permission for function_name exists:
+    skip
+else:
+    add_permissions_to_function()
+
+if target for function_name exists:
+    skip
+else:
+    define_target_function()
+```
+</details>
