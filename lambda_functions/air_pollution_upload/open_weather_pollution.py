@@ -8,6 +8,8 @@ import boto3
 import json
 import yaml
 
+
+
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
@@ -16,8 +18,8 @@ s3_client = boto3.client("s3")
 
 # API-Schlüssel aus der .env-Datei laden
 cities_data = config["coordinates"]
-api_key = config('API_KEY')
-S3_BUCKET_NAME = config("S3_BUCKET_NAME")
+api_key = config["API_KEY"]
+S3_BUCKET_NAME = config["S3_BUCKET_NAME"]
 
 
 coordinates = {}
