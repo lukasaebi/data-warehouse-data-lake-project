@@ -14,22 +14,17 @@ with open("config.yaml", "r") as file:
 #AWS S3 Client initialisieren
 s3_client = boto3.client("s3")
 
+# API-Schlüssel aus der .env-Datei laden
 cities_data = config["coordinates"]
+api_key = config('API_KEY')
+S3_BUCKET_NAME = config("S3_BUCKET_NAME")
+
 
 coordinates = {}
 
 for city in cities_data:
     city_name = city["city_name"]
     coordinates[city_name] = {"lat":city["lat"], "lon": city["lon"]}
-
-
-# Lade Umgebungsvariablen aus der .env-Datei (z. B. API-Schlüssel)
-load_dotenv()
-
-# API-Schlüssel aus der .env-Datei laden
-api_key = config('API_KEY')
-
-S3_BUCKET_NAME = config("S3_BUCKET_NAME")
 
 
 def fetch_air_pollution(coordinates, api_key):

@@ -14,23 +14,16 @@ with open("config.yaml", "r") as file:
 #AWS S3 Client initialisieren
 s3_client = boto3.client("s3")
 
+# API-Schlüssel aus der .env-Datei laden
 cities_data = config["coordinates"]
+api_key = config("API_KEY")
+S3_BUCKET_NAME = config("S3_BUCKET_NAME")
 
 coordinates = {}
 
 for city in cities_data:
     city_name = city["city_name"]
     coordinates[city_name] = {"lat":city["lat"], "lon": city["lon"]}
-
-
-# Lade Umgebungsvariablen aus der .env-Datei (z. B. API-Schlüssel)
-load_dotenv()
-
-# API-Schlüssel aus der .env-Datei laden
-api_key = config('API_KEY')
-
-S3_BUCKET_NAME = config("S3_BUCKET_NAME")
-
 
 # Berechne den Unix-Zeitstempel von vor 24 Stunden
 #start = current_time - (7*86400)  # 24 Stunden = 86400 Sekunden
@@ -131,6 +124,6 @@ def lambda_handler(event, context):
 
 #data = fetch_weather(coordinates, api_key)
 
-#if __name__ == "__main__":
-    #result = lambda_handler({}, None)
-    #print(result)
+if __name__ == "__main__":
+    result = lambda_handler({}, None)
+    print(result)
