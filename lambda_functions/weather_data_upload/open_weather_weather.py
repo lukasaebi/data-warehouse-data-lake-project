@@ -9,10 +9,12 @@ import json
 import yaml
 
 with open("config.yaml", "r") as file:
-    cities_data = yaml.safe_load(file)
+    config = yaml.safe_load(file)
 
 #AWS S3 Client initialisieren
 s3_client = boto3.client("s3")
+
+cities_data = config["coordinates"]
 
 coordinates = {}
 
@@ -25,9 +27,9 @@ for city in cities_data:
 load_dotenv()
 
 # API-Schlüssel aus der .env-Datei laden
-api_key = os.getenv('API_KEY')
+api_key = config('API_KEY')
 
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+S3_BUCKET_NAME = config("S3_BUCKET_NAME")
 
 
 # Berechne den Unix-Zeitstempel von vor 24 Stunden
