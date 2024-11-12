@@ -1,0 +1,3 @@
+target_bucket: aviations3
+city: Moscow
+iata_code: ["DME", "SVO", "VKO"]

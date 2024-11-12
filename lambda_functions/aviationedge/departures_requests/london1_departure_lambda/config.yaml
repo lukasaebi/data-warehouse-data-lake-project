@@ -1,0 +1,3 @@
+target_bucket: aviations3
+city: London1
+iata_code: ["LCY", "LGW", "LHR"]

@@ -1,0 +1,3 @@
+target_bucket: aviations3
+city: Paris
+iata_code: ["BVA", "CDG", "ORY"]

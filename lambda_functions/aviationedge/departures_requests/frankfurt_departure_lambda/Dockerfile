@@ -8,9 +8,9 @@ COPY requirements.txt ${LAMBDA_TASK_ROOT}
 RUN pip install -r requirements.txt
 
 # Copy function code and config file
-COPY rome_departure_lambda.py ${LAMBDA_TASK_ROOT}
+COPY frankfurt_departure_lambda.py ${LAMBDA_TASK_ROOT}
 COPY config.yaml ${LAMBDA_TASK_ROOT}
 
 # Set CMD to lambda handler
-CMD ["rome_departure_lambda.lambda_handler"]
+CMD ["frankfurt_departure_lambda.lambda_handler"]
 

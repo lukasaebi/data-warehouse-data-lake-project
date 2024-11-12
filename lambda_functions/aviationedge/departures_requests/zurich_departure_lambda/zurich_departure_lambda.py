@@ -62,18 +62,24 @@ def upload_departure_data_to_s3(data, bucket_name, s3_key):
 def lambda_handler(event, context):
     config = load_config()
     target_bucket = config["target_bucket"]
-    iata_code = config["iata_code"]
+    iata_codes = config["iata_code"]
     city = config["city"]
     
-    weekly_segments = generate_weekly_segments(date_from, date_to)
-    for week_num, (start_date, end_date) in enumerate(weekly_segments, start=1):
-        data = fetch_departure_data(iata_code, start_date, end_date)
-        if data:
-            s3_key = f"departures/{city}/{iata_code}_week{week_num}.json"
-            upload_departure_data_to_s3(data, target_bucket, s3_key)
-            print(f"Stored data for {iata_code} in {s3_key}")
-        else:
-            print(f"No data for {iata_code} in {city} from {start_date} to {end_date}")
+    # Ensure iata_codes is a list even if a single code is provided
+    if isinstance(iata_codes, str):
+        iata_codes = [iata_codes]
+    
+    for iata_code in iata_codes:
+        weekly_segments = generate_weekly_segments(date_from, date_to)
+        for week_num, (start_date, end_date) in enumerate(weekly_segments, start=1):
+            data = fetch_departure_data(iata_code, start_date, end_date)
+            if data:
+                # Include iata_code in the S3 key to differentiate files
+                s3_key = f"departures/{city}/{iata_code}_week{week_num}.json"
+                upload_departure_data_to_s3(data, target_bucket, s3_key)
+                print(f"Stored data for {iata_code} in {s3_key}")
+            else:
+                print(f"No data for {iata_code} in {city} from {start_date} to {end_date}")
 
     return {
         "statusCode": 200,
