@@ -17,7 +17,7 @@ CITIES_TO_LAMBDAS = {
     "Lisbon": "departures_Lisbon",
     "Dublin": "departures_Dublin",
     "Vienna": "departures_Vienna",
-    "Zurich": "departures_Zurich",
+    "Zurich": "zurich_departure_lambda"
 }
 
 def lambda_handler(event, context):
