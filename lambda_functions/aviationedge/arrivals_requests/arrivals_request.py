@@ -1,6 +1,6 @@
 """
 This code is used to get all historical arrival-flights from the api based on the airports in s3-bucket.
-Restricitions for API-call: max 365 days before today / max 20k flights per request / max handling time abaout 15 min
+Restricitions for API-call: max 365 days before today / max 20k flights per request / max handling time about 15 min
 """
 
 import json
