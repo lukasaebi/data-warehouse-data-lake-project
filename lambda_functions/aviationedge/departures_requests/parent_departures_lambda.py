@@ -6,17 +6,17 @@ lambda_client = boto3.client('lambda')
 
 # Define mapping of cities to Lambda functions
 CITIES_TO_LAMBDAS = {
-    "London_Part1": "departures_LondonPart1",
-    "London_Part2": "departures_LondonPart2",
-    "Paris": "departures_Paris",
-    "Amsterdam": "departures_Amsterdam",
-    "Madrid": "departures_nMadrid",
-    "Frankfurt": "departures_Frankfurt",
-    "Rome": "departures_Rome",
-    "Moscow": "departures_Moscow",
-    "Lisbon": "departures_Lisbon",
-    "Dublin": "departures_Dublin",
-    "Vienna": "departures_Vienna",
+    "London_Part1": "london1_departure_lambda",
+    "London_Part2": "london2_departure_lambda",
+    "Paris": "paris_departure_lambda",
+    "Amsterdam": "amsterdam_departure_lambda",
+    "Madrid": "madrid_departure_lambda",
+    "Frankfurt": "frankfurt_departure_lambda",
+    "Rome": "rome_departure_lambda",
+    "Moscow": "moscow_departure_lambda",
+    "Lisbon": "lisbon_departure_lambda",
+    "Dublin": "dublin_departure_lambda",
+    "Vienna": "vienna_departure_lambda",
     "Zurich": "zurich_departure_lambda"
 }
 

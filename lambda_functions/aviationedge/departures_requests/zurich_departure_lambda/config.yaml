@@ -1,3 +1,3 @@
-bucket_name: aviations3
-cities:
-  Zurich: ["ZRH"]
+target_bucket: aviations3
+city: Zurich
+iata_code: ZRH
