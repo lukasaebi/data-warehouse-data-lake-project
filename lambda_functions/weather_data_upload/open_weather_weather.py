@@ -2,34 +2,32 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
-import import_ipynb
 from datetime import datetime, timezone
 import boto3
 import json
+import yaml
 
-
-import open_weather_coordinates
+with open("config.json", "r") as file:
+    config = json.load(file)
 
 #AWS S3 Client initialisieren
 s3_client = boto3.client("s3")
 
+# API-Schlüssel aus der .env-Datei laden
+
+# Prüfen, ob der Code lokal ausgeführt wird
+if not os.getenv("AWS_EXECUTION_ENV"):
+    load_dotenv()  # Laden Sie .env nur lokal
+
+api_key = os.getenv("API_KEY")
+cities_data = config["coordinates"]
+S3_BUCKET_NAME = config["S3_BUCKET_NAME"]
+
 coordinates = {}
 
-for city in open_weather_coordinates.cities_coordinates:
+for city in cities_data:
     city_name = city["city_name"]
     coordinates[city_name] = {"lat":city["lat"], "lon": city["lon"]}
-
-
-
-
-# Lade Umgebungsvariablen aus der .env-Datei (z. B. API-Schlüssel)
-load_dotenv()
-
-# API-Schlüssel aus der .env-Datei laden
-api_key = os.getenv('API_KEY')
-
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-
 
 # Berechne den Unix-Zeitstempel von vor 24 Stunden
 #start = current_time - (7*86400)  # 24 Stunden = 86400 Sekunden
