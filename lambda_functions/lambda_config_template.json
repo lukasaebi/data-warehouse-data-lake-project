@@ -1,0 +1,8 @@
+{
+    "FunctionName": "your-function-name",
+    "Timeout": 3,
+    "MemorySize": 128,
+    "EphemeralStorage": {
+        "Size": 512
+    }
+}

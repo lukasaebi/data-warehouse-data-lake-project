@@ -1,2 +1,3 @@
 cities: ["London", "Paris", "Madrid", "Frankfurt am Main", "Zürich", "Moscow", "Amsterdam", "Lisbon", "Rome", "Dublin, Dublin", "Vienna"]
 country_codes: ["GBR", "FRA", "ESP", "DEU", "CHE", "RUS", "NLD", "PRT", "ITA", "IRL", "AUT"]
+bucket_name: "tomtom-api-data"
