@@ -1,0 +1,8 @@
+{
+    "FunctionName": "open_weather_weather",
+    "Timeout": 900,
+    "MemorySize": 128,
+    "EphemeralStorage": {
+        "Size": 512
+    }
+}
