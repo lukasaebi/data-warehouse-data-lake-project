@@ -1,5 +1,4 @@
-requests
-python-dotenv
-import-ipynb
-boto3
-pyyaml
+requests==2.32.3
+python-dotenv==1.0.1
+boto3==1.35.57
+pyyaml==6.0.2
