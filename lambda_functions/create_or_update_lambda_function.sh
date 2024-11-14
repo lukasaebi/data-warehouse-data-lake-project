@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Prerequisites: See `lambda_functions/README.md`
-
 set -e
 
 # Arguments
@@ -100,17 +98,32 @@ else
 
     set +e
     while [ $retry_count -lt $max_retries ]; do
-        if aws lambda update-function-configuration \
-            --function-name "$LAMBDA_FUNCTION_NAME" \
-            --timeout $TIMEOUT \
-            --environment "$env_vars_string" \
-            --no-cli-pager > /dev/null 2>&1; then
-            success=true
-            break
+        if [[ -f "$LAMBDA_DIR/lambda_config.json" ]]; then
+            echo "sample_config.json exists in $LAMBDA_DIR. Configuration will be updated using it."
+            if aws lambda update-function-configuration \
+                --cli-input-json "file://$LAMBDA_DIR/lambda_config.json" \
+                --environment "$env_vars_string" \
+                --no-cli-pager > /dev/null 2>&1; then
+                success=true
+                break
+            else
+                echo "Failed to update environment variables. Lambda function not ready yet. Retrying in 5 seconds..."
+                ((retry_count++))
+                sleep 10
+            fi
         else
-            echo "Failed to update environment variables. Lambda function not ready yet. Retrying in 5 seconds..."
-            ((retry_count++))
-            sleep 5
+            echo "sample_config.json does not exist in $LAMBDA_DIR. Configuration will not be updated."
+            if aws lambda update-function-configuration \
+                --function-name "$LAMBDA_FUNCTION_NAME" \
+                --environment "$env_vars_string" \
+                --no-cli-pager > /dev/null 2>&1; then
+                success=true
+                break
+            else
+                echo "Failed to update environment variables. Lambda function not ready yet. Retrying in 5 seconds..."
+                ((retry_count++))
+                sleep 10
+            fi
         fi
     done
 
