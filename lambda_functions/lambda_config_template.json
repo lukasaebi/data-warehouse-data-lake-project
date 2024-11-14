@@ -1,5 +1,5 @@
 {
-    "FunctionName": "geocode-requests",
+    "FunctionName": "your-function-name",
     "Timeout": 3,
     "MemorySize": 128,
     "EphemeralStorage": {
