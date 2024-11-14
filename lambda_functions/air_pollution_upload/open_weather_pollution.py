@@ -2,23 +2,27 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
-import import_ipynb
 from datetime import datetime, timezone
 import boto3
 import json
 import yaml
 
 
-
-with open("config.yaml", "r") as file:
-    config = yaml.safe_load(file)
+with open("config.json", "r") as file:
+    config = json.load(file)
 
 #AWS S3 Client initialisieren
 s3_client = boto3.client("s3")
 
 # API-Schlüssel aus der .env-Datei laden
+# Prüfen, ob der Code lokal ausgeführt wird
+if not os.getenv("AWS_EXECUTION_ENV"):
+    load_dotenv()  # Laden Sie .env nur lokal
+
+api_key = os.getenv("API_KEY")
+
+# API-Schlüssel aus der .env-Datei laden
 cities_data = config["coordinates"]
-api_key = config["API_KEY"]
 S3_BUCKET_NAME = config["S3_BUCKET_NAME"]
 
 
