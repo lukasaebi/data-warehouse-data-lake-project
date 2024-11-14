@@ -1,0 +1,5 @@
+{
+    "FunctionName": "rome_departure_lambda",
+    "Timeout": 900,
+    "MemorySize": 512
+}

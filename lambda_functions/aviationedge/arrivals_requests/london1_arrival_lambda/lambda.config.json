@@ -1,0 +1,5 @@
+{
+    "FunctionName": "london1_arrival_lambda",
+    "Timeout": 900,
+    "MemorySize": 512
+}
