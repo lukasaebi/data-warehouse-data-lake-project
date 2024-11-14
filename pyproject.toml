@@ -15,3 +15,19 @@ dependencies = [
     "pyyaml>=6.0.2,<7",
     "requests>=2.32.3,<3",
 ]
+
+[tool.ruff]
+line-length = 120
+select = [
+    "F",  # pyflakes rules
+    "E",  # pycodestyle error rules
+    "W",  # pycodestyle warning rules
+    "B",  # flake8-bugbear rules
+    "I",  # isort rules
+]
+ignore = [
+    "E501",  # line-too-long
+]
+
+[tool.ruff.format]
+indent-style = "tab"
