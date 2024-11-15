@@ -1,0 +1,5 @@
+{
+    "FunctionName": "parent_departures_lambda",
+    "Timeout": 900,
+    "MemorySize": 512
+}
