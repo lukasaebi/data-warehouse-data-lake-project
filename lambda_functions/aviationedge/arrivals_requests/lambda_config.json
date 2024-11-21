@@ -1,5 +1,5 @@
 {
     "FunctionName": "parent_arrivals_lambda",
-    "Timeout": 900,
+    "Timeout": 840,
     "MemorySize": 512
 }
