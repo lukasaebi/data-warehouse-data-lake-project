@@ -2,3 +2,4 @@ boto3==1.35.55
 requests==2.32.3
 python-dotenv==1.0.1
 pyyaml==6.0.2
+pymysql==1.1.1

@@ -13,7 +13,7 @@ s3_client = boto3.client('s3')
 api_key = os.getenv("API_KEY")
 
 # Set default historical date range
-default_date_to = datetime.strptime("2024-11-16", "%Y-%m-%d")
+default_date_to = datetime.strptime("2024-11-17", "%Y-%m-%d")
 default_date_from = datetime.strptime("2023-12-01", "%Y-%m-%d")
 
 def load_config():
