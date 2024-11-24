@@ -2,7 +2,7 @@
 
 # Set AWS details
 AWS_REGION="us-east-1"
-AWS_ACCOUNT_ID="871770651017"
+AWS_ACCOUNT_ID="892760117705"
 ROLE_ARN="arn:aws:iam::$AWS_ACCOUNT_ID:role/LabRole"
 API_KEY=$(cat .env | grep API_KEY | cut -d '=' -f2) # Extract API_KEY from .env file
 
