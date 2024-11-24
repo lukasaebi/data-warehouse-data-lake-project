@@ -56,6 +56,6 @@
         "lon": 16.3725042
       }
     ],
-    "S3_BUCKET_NAME": "pollutionweatherdata"
+    "S3_BUCKET_NAME": "airpollutionbucket"
   }
   
