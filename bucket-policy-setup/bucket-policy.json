@@ -1,0 +1,24 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::767533812262:root"
+            },
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::freunds-bucket-1", 
+                "arn:aws:s3:::freunds-bucket-1/*",
+                "arn:aws:s3:::freunds-bucket-2",
+                "arn:aws:s3:::freunds-bucket-2/*",
+                "arn:aws:s3:::freunds-bucket-3",
+                "arn:aws:s3:::freunds-bucket-3/*"
+            ]
+        }
+    ]
+}
+
