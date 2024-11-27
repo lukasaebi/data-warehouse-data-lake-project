@@ -1,0 +1,8 @@
+cities: ["London", "Paris", "Madrid", "Frankfurt am Main", "Zürich", "Moscow", "Amsterdam", "Lisbon", "Rome", "Dublin", "Vienna"]
+country_codes: ["GBR", "FRA", "ESP", "DEU", "CHE", "RUS", "NLD", "PRT", "ITA", "IRL", "AUT"]
+timezones: [0, 1, 1, 1, 1, 3, 1, 0, 1, 0, 1]
+summer_time_addition: [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1]
+start_summer_time: [2024, 3, 31]
+start_winter_time: [2024, 10, 27]
+filepath_bboxes: /home/lukasaebi/projects/hslu/data-warehouse-data-lake-project/data/here/geocode_data.json
+filepath_base_output: /home/lukasaebi/projects/hslu/data-warehouse-data-lake-project/downloads/here/traffic_volume/
