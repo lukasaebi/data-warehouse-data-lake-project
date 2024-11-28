@@ -42,14 +42,20 @@ def fetch_existing_data_from_s3(s3_client, bucket_name, key):
 
 def determine_new_time_range(existing_data, current_time):
     """
-    Bestimmt die fehlenden Zeitbereiche basierend auf den bestehenden Daten.
+    Bestimmt die fehlenden Zeitbereiche ab dem 1. Dezember 2023.
     """
+    # Der Startzeitpunkt: 1. Dezember 2023, 00:00 UTC
+    start_time = int(datetime(2023, 12, 1, 0, 0, 0, tzinfo=timezone.utc).timestamp())
+
     if not existing_data:
-        # Keine bestehenden Daten vorhanden, 1 Jahr Daten abrufen
-        return [(current_time - (week + 1) * 7 * 86400, current_time - week * 7 * 86400) for week in range(52)]
+        # Keine bestehenden Daten vorhanden, Zeitbereiche ab dem Startzeitpunkt erstellen
+        return [(start_time + week * 7 * 86400, start_time + (week + 1) * 7 * 86400 - 1) for week in range((current_time - start_time) // (7 * 86400) + 1)]
     
     # Bestimmen des jüngsten Zeitstempels aus den bestehenden Daten
     latest_timestamp = max(record['timestamp'] for record in existing_data)
+    
+    # Startzeitpunkt sicherstellen
+    latest_timestamp = max(latest_timestamp, start_time)
     
     # Erstelle neue Zeitintervalle ab dem jüngsten Zeitstempel
     new_time_ranges = []
@@ -65,6 +71,7 @@ def determine_new_time_range(existing_data, current_time):
 def fetch_air_pollution(coordinates, api_key, time_ranges):
     """
     Ruft Luftverschmutzungsdaten für die angegebenen Zeitbereiche ab.
+    Filtert nur Daten von 6:00 bis 9:00 Uhr UTC.
     """
     all_data = []
 
@@ -81,16 +88,22 @@ def fetch_air_pollution(coordinates, api_key, time_ranges):
                 if response.status_code == 200:
                     data = response.json()
                     for entry in data.get("list", []):
-                        observation = {
-                            "place": place,
-                            "latitude": lat,
-                            "longitude": lon,
-                            "timestamp": entry.get("dt"),
-                            "date": time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(entry['dt'])),
-                            "air_quality_index": entry["main"]["aqi"],
-                            "components": entry["components"]
-                        }
-                        all_data.append(observation)
+                        # Konvertiere den Zeitstempel in eine UTC-Zeit
+                        observation_time = datetime.utcfromtimestamp(entry.get("dt"))
+                        hour = observation_time.hour
+                        
+                        # Filtere nur Daten zwischen 6:00 und 9:00 Uhr
+                        if 6 <= hour < 10:
+                            observation = {
+                                "place": place,
+                                "latitude": lat,
+                                "longitude": lon,
+                                "timestamp": entry.get("dt"),
+                                "date": observation_time.strftime('%Y-%m-%d %H:%M:%S'),
+                                "air_quality_index": entry["main"]["aqi"],
+                                "components": entry["components"]
+                            }
+                            all_data.append(observation)
                 else:
                     print(f"Fehlerhafte Anfrage für {place} ({lat}, {lon}). Statuscode: {response.status_code}")
 

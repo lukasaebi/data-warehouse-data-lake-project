@@ -1,7 +1,7 @@
 # Liste der Buckets deines Freundes
 CARLOS_BUCKETS=("aviations3")
 
-LUKAS_BUCKETS=(".....")
+#LUKAS_BUCKETS=(".....")
 
 # Dein Ziel-Bucket
 MY_BUCKET="projectdatacombined"
@@ -15,8 +15,8 @@ done
 
 
 # Synchronisierung von Freund 2
-for BUCKET in "${LUKAS_BUCKETS[@]}"; do
-    echo "Starte Synchronisierung von Freund 2: $BUCKET nach $MY_BUCKET..."
-    aws s3 sync s3://$BUCKET s3://$MY_BUCKET
-    echo "Synchronisierung von Freund 2: $BUCKET abgeschlossen."
-done
+#for BUCKET in "${LUKAS_BUCKETS[@]}"; do
+    #echo "Starte Synchronisierung von Freund 2: $BUCKET nach $MY_BUCKET..."
+    #aws s3 sync s3://$BUCKET s3://$MY_BUCKET
+    #echo "Synchronisierung von Freund 2: $BUCKET abgeschlossen."
+#done
