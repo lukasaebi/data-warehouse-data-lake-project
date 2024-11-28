@@ -56,6 +56,6 @@
         "lon": 16.3725042
       }
     ],
-    "S3_BUCKET_NAME": "cityweatherbucket"
+    "S3_BUCKET_NAME": "projectdatacombined"
   }
   
