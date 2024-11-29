@@ -11,12 +11,8 @@
                 "s3:GetObject"
             ],
             "Resource": [
-                "arn:aws:s3:::freunds-bucket-1", 
-                "arn:aws:s3:::freunds-bucket-1/*",
-                "arn:aws:s3:::freunds-bucket-2",
-                "arn:aws:s3:::freunds-bucket-2/*",
-                "arn:aws:s3:::freunds-bucket-3",
-                "arn:aws:s3:::freunds-bucket-3/*"
+                "arn:aws:s3:::aviations3", 
+                "arn:aws:s3:::aviations3/*"
             ]
         }
     ]
