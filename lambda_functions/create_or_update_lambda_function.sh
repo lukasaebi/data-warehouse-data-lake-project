@@ -107,7 +107,7 @@ else
                 success=true
                 break
             else
-                echo "Failed to update environment variables. Lambda function not ready yet. Retrying in 5 seconds..."
+                echo "Failed to update environment variables. Lambda function not ready yet. Retrying in 10 seconds..."
                 ((retry_count++))
                 sleep 10
             fi
@@ -120,7 +120,7 @@ else
                 success=true
                 break
             else
-                echo "Failed to update environment variables. Lambda function not ready yet. Retrying in 5 seconds..."
+                echo "Failed to update environment variables. Lambda function not ready yet. Retrying in 10 seconds..."
                 ((retry_count++))
                 sleep 10
             fi
