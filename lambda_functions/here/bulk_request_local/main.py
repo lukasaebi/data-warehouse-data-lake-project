@@ -101,7 +101,7 @@ def postprocess_api_response(data: dict):
 def make_requests_for_one_day(date: datetime, coordinates: dict, config: dict, API_KEY: str) -> None:
     """
     Makes API requests for a single day for all cities in the config.
-    
+
     Args:
         date (datetime): The date for which to make the requests.
         coordinates (dict): The coordinates of the cities.
