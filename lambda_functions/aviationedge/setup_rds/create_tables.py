@@ -68,11 +68,7 @@ try:
             arrival_scheduled_time TIMESTAMP,
             arrival_actual_time TIMESTAMP,
             airline_name VARCHAR(100),
-            airline_iata VARCHAR(10),
-            codeshare_airline_name VARCHAR(100),
-            codeshare_airline_iata VARCHAR(10),
-            codeshare_flight_number VARCHAR(20),
-            codeshare_flight_iata_number VARCHAR(20)
+            airline_iata VARCHAR(10)
         );
         """
     )

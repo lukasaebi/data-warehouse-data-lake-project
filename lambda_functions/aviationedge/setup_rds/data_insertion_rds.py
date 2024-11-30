@@ -1,22 +1,21 @@
 import psycopg2
 import boto3
-import os
 import json
+import os
 from dotenv import load_dotenv
 from datetime import datetime
 
 # Load environment variables from .env file
 load_dotenv()
 
+# Fetch database connection details from .env file
 RDS_HOST = os.getenv("RDS_HOST")
 RDS_USER = os.getenv("RDS_USER")
 RDS_PASSWORD = os.getenv("RDS_PASSWORD")
 RDS_DBNAME = os.getenv("RDS_DBNAME", "aviation")
 S3_BUCKET = os.getenv("S3_BUCKET", "aviations3")
-S3_PREFIX = "arrivals/Lisbon"
-MAX_DATA_SIZE_MB = 5
 
-# Function to connect to RDS
+# Function to connect to the RDS database
 def connect_to_rds():
     try:
         return psycopg2.connect(
@@ -29,27 +28,6 @@ def connect_to_rds():
     except Exception as e:
         print({"statusCode": 500, "message": f"Error connecting to RDS: {str(e)}"})
         raise
-
-# Function to list all files in S3 bucket under a specific prefix
-def list_files_in_s3(bucket, prefix):
-    s3 = boto3.client("s3")
-    file_keys = []
-    continuation_token = None
-    while True:
-        kwargs = {"Bucket": bucket, "Prefix": prefix}
-        if continuation_token:
-            kwargs["ContinuationToken"] = continuation_token
-        response = s3.list_objects_v2(**kwargs)
-
-        if "Contents" in response:
-            for content in response["Contents"]:
-                file_keys.append(content["Key"])
-
-        if response.get("IsTruncated"):
-            continuation_token = response["NextContinuationToken"]
-        else:
-            break
-    return file_keys
 
 # Function to fetch data from S3
 def fetch_data_from_s3(bucket, key):
@@ -69,11 +47,13 @@ def insert_data_to_rds(data):
                     arrival_iata, arrival_scheduled_time, arrival_actual_time,
                     airline_name, airline_iata
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT DO NOTHING;  -- Prevent duplicates
             """
+
+            # Insert only records without codeshared information
             for record in data:
                 if "codeshared" in record:
-                    continue  # Skip codeshared flights
+                    # Skip records with codeshared information
+                    continue
 
                 values = (
                     record.get("flight", {}).get("number"),
@@ -93,12 +73,9 @@ def insert_data_to_rds(data):
                 cursor.execute(sql, values)
 
         connection.commit()
-        print(f"Inserted {len(data)} records successfully.")
-    except Exception as e:
-        print(f"Error during insert: {e}")
+        print("Data successfully inserted into the 'arrivals' table without codeshared flights.")
     finally:
         connection.close()
-
 
 # Function to parse timestamp
 def parse_timestamp(timestamp):
@@ -109,37 +86,12 @@ def parse_timestamp(timestamp):
             return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
     return None
 
-# Main function to process files
+# Main function
 def main():
-    file_keys = list_files_in_s3(S3_BUCKET, S3_PREFIX)
-    print(f"Found {len(file_keys)} files to process.")
-    
-    aggregated_data = []  # Holds aggregated data
-    current_size_mb = 0  # Tracks the current size of aggregated data
-
-    for file_key in file_keys:
-        print(f"Processing file: {file_key}")
-        data = fetch_data_from_s3(S3_BUCKET, file_key)
-        data_size_mb = len(json.dumps(data).encode("utf-8")) / (1024 * 1024)
-
-        # Check if adding this file exceeds the max batch size
-        if current_size_mb + data_size_mb > MAX_DATA_SIZE_MB:
-            # Insert aggregated data into RDS
-            insert_data_to_rds(aggregated_data)
-
-            # Reset for the next batch
-            aggregated_data = []
-            current_size_mb = 0
-
-        # Add current file's data to the aggregated batch
-        aggregated_data.extend(data if isinstance(data, list) else [data])
-        current_size_mb += data_size_mb
-
-    # Insert remaining data into RDS
-    if aggregated_data:
-        insert_data_to_rds(aggregated_data)
-
-    print("All files processed and data inserted into RDS.")
+    file_key = "arrivals/Paris/CDG_2024-11-19_to_2024-11-20.json"
+    data = fetch_data_from_s3(S3_BUCKET, file_key)
+    insert_data_to_rds(data)
 
 if __name__ == "__main__":
     main()
+
