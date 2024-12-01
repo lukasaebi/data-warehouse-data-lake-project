@@ -6,7 +6,7 @@ FUNCTION_NAME=$1
 
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-### Create Event Rule for Lambda Function to schedule daily at 09:05 AM UTC in November and December
+### Create Event Rule for Lambda Function to schedule daily at 10:00 AM UTC in November and December
 
 # Check if "DailyLambdaTrigger" rule exists (if exists -> rule_exists=1)
 rule_exists=$(aws events list-rules --query "length(Rules[?Name=='DailyLambdaTrigger'])" --output text)
@@ -17,8 +17,8 @@ else
     echo "Creating Event Rule 'DailyLambdaTrigger'..."
     aws events put-rule \
         --name DailyLambdaTrigger \
-        --schedule-expression "cron(5 9 * 11,12 ? *)" \
-        --description "Triggers Lambda daily at 9:05 AM UTC in November and December" \
+        --schedule-expression "cron(0 10 * 11,12 ? *)" \
+        --description "Triggers Lambda daily at 10:00 AM UTC in November and December" \
         --no-cli-pager # not cli output
     echo "Event Rule 'DailyLambdaTrigger' successfully created."
 fi
@@ -68,4 +68,4 @@ else
     echo "Lambda function $FUNCTION_NAME added as a target."
 fi
 
-echo "Lambda function $FUNCTION_NAME is scheduled to run daily at 9:05 AM UTC in November and December"
+echo "Lambda function $FUNCTION_NAME is scheduled to run daily at 10:00 AM UTC in November and December"

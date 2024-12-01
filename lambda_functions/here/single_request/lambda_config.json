@@ -1,0 +1,8 @@
+{
+    "FunctionName": "here-single-request",
+    "Timeout": 30,
+    "MemorySize": 128,
+    "EphemeralStorage": {
+        "Size": 1024
+    }
+}

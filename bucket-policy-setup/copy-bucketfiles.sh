@@ -1,14 +1,23 @@
 #!/bin/bash
 
-# Liste der Buckets deines Freundes
-FRIEND_BUCKETS=("freunds-bucket-1" "freunds-bucket-2" "freunds-bucket-3")
+# Definiere die Freunde und deren Buckets als Assoziatives Array
+declare -A FRIEND_BUCKETS=(
+    [CARLOS]="aviations3 "
+    [LUKAS]="BUCKET1 BUCKET2 BUCKET3"
+)
 
-# Dein Ziel-Bucket
-MY_BUCKET="mein-s3-bucket"
+# Ziel-Bucket-Mapping
+declare -A TARGET_BUCKETS=(
+    [CARLOS]="projectdatacombined"
+    [LUKAS]="projectdatacombined"
+)
 
-# Schleife durch die Buckets deines Freundes und kopiere die Inhalte
-for BUCKET in "${FRIEND_BUCKETS[@]}"; do
-    echo "Kopiere Dateien von $BUCKET nach $MY_BUCKET..."
-    aws s3 sync s3://$BUCKET s3://$MY_BUCKET/
-    echo "Kopieren von $BUCKET abgeschlossen."
+# Schleife durch Freunde und ihre Buckets
+for FRIEND in "${!FRIEND_BUCKETS[@]}"; do
+    TARGET=${TARGET_BUCKETS[$FRIEND]}
+    for BUCKET in ${FRIEND_BUCKETS[$FRIEND]}; do
+        echo "Starte Synchronisierung von $FRIEND: $BUCKET nach $TARGET..."
+        aws s3 sync s3://$BUCKET s3://$TARGET/$FRIEND/$BUCKET
+        echo "Synchronisierung von $FRIEND: $BUCKET abgeschlossen."
+    done
 done
