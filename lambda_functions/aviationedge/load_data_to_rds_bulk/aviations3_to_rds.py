@@ -173,7 +173,8 @@ def parse_timestamp(timestamp):
 # Create a pandas DataFrame from S3 JSON files
 def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd.DataFrame:
     """
-    Reads multiple JSON files from S3 and creates a consolidated pandas DataFrame.
+    Reads multiple JSON files from S3 and creates a consolidated pandas DataFrame,
+    filtering rows where `arrival_actual_time` is between 06:00:00 and 09:00:00.
     """
     rows = []
     for filepath in filepaths:
@@ -181,16 +182,23 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
         try:
             with open("/tmp/temp.json", "r") as f:
                 data = json.load(f)
-                
+
             # Check if the file contains an error key
             if isinstance(data, dict) and data.get("error"):
                 logger.warning(f"Skipping file due to error: {data['error']}")
                 continue
-                
+
             for record in data:
+                # Skip codeshared flights
                 if "codeshared" in record:
                     logger.info(f"Skipping codeshared flight: {record.get('codeshared')}")
-                    continue  # Skip codeshared flights
+                    continue
+
+                # Parse `arrival_actual_time` and filter based on time range
+                arrival_actual_time = parse_timestamp(record.get("arrival", {}).get("actualTime"))
+                if arrival_actual_time and not (6 <= arrival_actual_time.hour < 9):
+                    continue  # Skip rows outside the time range
+
                 rows.append(
                     {
                         "flight_number": record.get("flight", {}).get("number"),
@@ -198,12 +206,12 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                         "type": record.get("type"),
                         "status": record.get("status"),
                         "departure_iata": record.get("departure", {}).get("iataCode"),
-                        "departure_delay": record.get("departure", {}).get("delay"),
+                        "departure_delay": int(float(record.get("departure", {}).get("delay", 0) or 0)),
                         "departure_scheduled_time": parse_timestamp(record.get("departure", {}).get("scheduledTime")),
                         "departure_actual_time": parse_timestamp(record.get("departure", {}).get("actualTime")),
                         "arrival_iata": record.get("arrival", {}).get("iataCode"),
                         "arrival_scheduled_time": parse_timestamp(record.get("arrival", {}).get("scheduledTime")),
-                        "arrival_actual_time": parse_timestamp(record.get("arrival", {}).get("actualTime")),
+                        "arrival_actual_time": arrival_actual_time,
                         "airline_name": record.get("airline", {}).get("name"),
                         "airline_iata": record.get("airline", {}).get("iataCode"),
                     }
@@ -220,36 +228,17 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
     return pd.DataFrame(rows)
 
 
-
-# Main function
-def main(event, context):
-    """
-    Lambda handler function. Accepts AWS event and context objects.
-    """
-    config = Config.from_yaml(Path("config.yaml"))
-    size_threshold = 300 * 1024 * 1024  # 300 MB
-
-    with make_db_connection(config, DB_PASSWORD) as conn:
-        create_table(conn)
-
-        batches = list_s3_files_by_size(config.bucket_name, config.base_path, size_threshold)
-        logger.info(f"Found {len(batches)} batches to process.")
-
-        for i, batch in enumerate(tqdm(batches), start=1):
-            df = create_dataframe_from_s3_files(batch, config.bucket_name)
-            insert_bulk_data_from_dataframe(conn, df)
-            logger.info(f"Inserted batch {i} into database.")
-
-    logger.info("All files processed and data loaded.")
-
+# Test with a single file
 def test_with_single_file():
+    """
+    Test function to process a single file and filter based on time range.
+    """
     config = Config.from_yaml(Path("config.yaml"))
     filepaths = ["arrivals/Lisbon/LIS_2023-12-01.json"]
-    
+
     logger.info(f"Testing with file: {filepaths[0]}")
-    
     df = create_dataframe_from_s3_files(filepaths, config.bucket_name)
-    
+
     if df.empty:
         logger.warning("No rows were extracted from the file.")
     else:
@@ -257,7 +246,34 @@ def test_with_single_file():
         logger.info(df.head())
 
 
+# Main function to process multiple batches
+def main(event, context):
+    """
+    Lambda handler function. Processes all batches of files in the S3 bucket.
+    """
+    config = Config.from_yaml(Path("config.yaml"))
+    size_threshold = 300 * 1024 * 1024  # 300 MB
+
+    with make_db_connection(config, DB_PASSWORD) as conn:
+        create_table(conn)
+
+        # Fetch batches of files by size
+        batches = list_s3_files_by_size(config.bucket_name, config.base_path, size_threshold)
+        logger.info(f"Found {len(batches)} batches to process.")
+
+        for i, batch in enumerate(tqdm(batches), start=1):
+            df = create_dataframe_from_s3_files(batch, config.bucket_name)
+            if not df.empty:
+                insert_bulk_data_from_dataframe(conn, df)
+                logger.info(f"Inserted batch {i} into database.")
+            else:
+                logger.info(f"No rows to insert for batch {i}.")
+
+    logger.info("All files processed and data loaded.")
+
 
 if __name__ == "__main__":
+    # Test with a single file for debugging
     test_with_single_file()
+
 
