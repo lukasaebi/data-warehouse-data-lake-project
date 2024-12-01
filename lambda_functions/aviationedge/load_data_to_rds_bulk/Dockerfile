@@ -1,17 +1,16 @@
-# Stage 1
+# Base image for Python 3.11 AWS Lambda
 FROM public.ecr.aws/lambda/python:3.11
 
-# Copy requirements.txt
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
+# Upgrade pip to the latest version
+RUN pip install --upgrade pip
 
-# Install the specified packages
-RUN pip install -r requirements.txt
+# Copy requirements.txt and install dependencies
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/
+RUN pip install -r ${LAMBDA_TASK_ROOT}/requirements.txt
 
-# Copy function code
-COPY main.py ${LAMBDA_TASK_ROOT}
+# Copy the application code and configuration files
+COPY aviations3_to_rds.py ${LAMBDA_TASK_ROOT}/
+COPY config.yaml ${LAMBDA_TASK_ROOT}/
 
-# Copy config file
-COPY config.yaml ${LAMBDA_TASK_ROOT}
-
-# Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
-CMD [ "main.lambda_handler" ]
+# Set the default handler for the Lambda function
+CMD ["aviations3_to_rds.main"]

@@ -1,8 +1,7 @@
-cities: ["London", "Paris", "Madrid", "Frankfurt am Main", "Zürich", "Moscow", "Amsterdam", "Lisbon", "Rome", "Dublin", "Vienna"]
-dbname: test
-host: "database-1.ctucciegycsj.us-east-1.rds.amazonaws.com"
+dbname: aviation
+host: "database-1.cmqql8v8h1t6.us-east-1.rds.amazonaws.com"
 port: 5432
 user: postgres
-bucket_name: tomtom-api-data
-base_path: here/traffic_volume
-step_size: 110
+bucket_name: aviations3
+base_path: arrivals/Lisbon
+size_threshold: 300
