@@ -1,0 +1,112 @@
+{
+    "London": {
+        "topLeftPoint": {
+            "lat": 51.67235,
+            "lon": -0.35137
+        },
+        "btmRightPoint": {
+            "lat": 51.38474,
+            "lon": 0.14471
+        }
+    },
+    "Paris": {
+        "topLeftPoint": {
+            "lat": 48.90216,
+            "lon": 2.2241
+        },
+        "btmRightPoint": {
+            "lat": 48.81562,
+            "lon": 2.46991
+        }
+    },
+    "Madrid": {
+        "topLeftPoint": {
+            "lat": 40.64352,
+            "lon": -3.889
+        },
+        "btmRightPoint": {
+            "lat": 40.31207,
+            "lon": -3.51801
+        }
+    },
+    "Frankfurt am Main": {
+        "topLeftPoint": {
+            "lat": 50.2271,
+            "lon": 8.47271
+        },
+        "btmRightPoint": {
+            "lat": 50.01556,
+            "lon": 8.8005
+        }
+    },
+    "Zürich": {
+        "topLeftPoint": {
+            "lat": 47.43472,
+            "lon": 8.44808
+        },
+        "btmRightPoint": {
+            "lat": 47.32022,
+            "lon": 8.62544
+        }
+    },
+    "Moscow": {
+        "topLeftPoint": {
+            "lat": 55.957482,
+            "lon": 37.229407
+        },
+        "btmRightPoint": {
+            "lat": 55.49275,
+            "lon": 37.96747
+        }
+    },
+    "Amsterdam": {
+        "topLeftPoint": {
+            "lat": 52.43123,
+            "lon": 4.7289
+        },
+        "btmRightPoint": {
+            "lat": 52.27801,
+            "lon": 5.10767
+        }
+    },
+    "Lisbon": {
+        "topLeftPoint": {
+            "lat": 38.79709,
+            "lon": -9.22983
+        },
+        "btmRightPoint": {
+            "lat": 38.69137,
+            "lon": -9.08952
+        }
+    },
+    "Rome": {
+        "topLeftPoint": {
+            "lat": 42.14096,
+            "lon": 12.23443
+        },
+        "btmRightPoint": {
+            "lat": 41.65587,
+            "lon": 12.85586
+        }
+    },
+    "Dublin": {
+        "topLeftPoint": {
+            "lat": 53.63472,
+            "lon": -6.54681
+        },
+        "btmRightPoint": {
+            "lat": 53.17875,
+            "lon": -5.99485
+        }
+    },
+    "Vienna": {
+        "topLeftPoint": {
+            "lat": 48.3227,
+            "lon": 16.18183
+        },
+        "btmRightPoint": {
+            "lat": 48.11767,
+            "lon": 16.57751
+        }
+    }
+}
