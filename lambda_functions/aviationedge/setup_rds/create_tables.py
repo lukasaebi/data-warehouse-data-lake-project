@@ -67,6 +67,7 @@ try:
             arrival_iata VARCHAR(10),
             arrival_scheduled_time TIMESTAMP,
             arrival_actual_time TIMESTAMP,
+            arrival_delay INT,
             airline_name VARCHAR(100),
             airline_iata VARCHAR(10)
         );

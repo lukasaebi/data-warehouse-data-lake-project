@@ -36,6 +36,7 @@ class Config:
             self.dbname = config["dbname"]
             self.base_path = config["base_path"]
             self.bucket_name = config["bucket_name"]
+            self.size_threshold = config["size_threshold"]
 
     @classmethod
     def from_yaml(cls, path: Path) -> "Config":
@@ -127,17 +128,20 @@ def create_table(conn: connection):
                 arrival_iata VARCHAR(10),
                 arrival_scheduled_time TIMESTAMP,
                 arrival_actual_time TIMESTAMP,
+                arrival_delay INT,
                 airline_name VARCHAR(100),
-                airline_iata VARCHAR(10)
-            )
+                airline_iata VARCHAR(10),
+                CONSTRAINT unique_flight UNIQUE (flight_number, arrival_scheduled_time, arrival_actual_time)
+            );
             """
         )
         conn.commit()
 
+
 # Bulk insert data into the table
 def insert_bulk_data_from_dataframe(conn: connection, df: pd.DataFrame):
     """
-    Inserts data from a DataFrame into the database using COPY.
+    Inserts data from a DataFrame into the database using COPY with ON CONFLICT to avoid duplicates.
     """
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, index=False, header=False)
@@ -149,13 +153,14 @@ def insert_bulk_data_from_dataframe(conn: connection, df: pd.DataFrame):
             COPY arrivals (
                 flight_number, flight_iata_number, type, status,
                 departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
-                arrival_iata, arrival_scheduled_time, arrival_actual_time,
+                arrival_iata, arrival_scheduled_time, arrival_actual_time, arrival_delay,
                 airline_name, airline_iata
-            ) FROM STDIN WITH CSV
+            ) FROM STDIN WITH CSV;
             """,
             csv_buffer,
         )
-    conn.commit()
+        conn.commit()
+
 
 # Parse timestamp
 def parse_timestamp(timestamp):
@@ -174,7 +179,8 @@ def parse_timestamp(timestamp):
 def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd.DataFrame:
     """
     Reads multiple JSON files from S3 and creates a consolidated pandas DataFrame,
-    filtering rows where `arrival_actual_time` is between 06:00:00 and 09:00:00.
+    filtering rows where `arrival_actual_time` is between 06:00:00 and 09:00:00
+    and excluding rows where `arrival_actual_time` is null.
     """
     rows = []
     for filepath in filepaths:
@@ -194,10 +200,21 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                     logger.info(f"Skipping codeshared flight: {record.get('codeshared')}")
                     continue
 
-                # Parse `arrival_actual_time` and filter based on time range
+                # Parse `arrival_actual_time`
                 arrival_actual_time = parse_timestamp(record.get("arrival", {}).get("actualTime"))
-                if arrival_actual_time and not (6 <= arrival_actual_time.hour < 9):
-                    continue  # Skip rows outside the time range
+                if not arrival_actual_time:
+                    # Skip rows with null `arrival_actual_time`
+                    continue
+
+                # Filter based on time range
+                if not (6 <= arrival_actual_time.hour < 9):
+                    continue
+
+                # Calculate `arrival_delay` (in minutes)
+                arrival_scheduled_time = parse_timestamp(record.get("arrival", {}).get("scheduledTime"))
+                arrival_delay = None
+                if arrival_scheduled_time and arrival_actual_time:
+                    arrival_delay = int((arrival_actual_time - arrival_scheduled_time).total_seconds() // 60)
 
                 rows.append(
                     {
@@ -210,8 +227,9 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                         "departure_scheduled_time": parse_timestamp(record.get("departure", {}).get("scheduledTime")),
                         "departure_actual_time": parse_timestamp(record.get("departure", {}).get("actualTime")),
                         "arrival_iata": record.get("arrival", {}).get("iataCode"),
-                        "arrival_scheduled_time": parse_timestamp(record.get("arrival", {}).get("scheduledTime")),
+                        "arrival_scheduled_time": arrival_scheduled_time,
                         "arrival_actual_time": arrival_actual_time,
+                        "arrival_delay": arrival_delay,
                         "airline_name": record.get("airline", {}).get("name"),
                         "airline_iata": record.get("airline", {}).get("iataCode"),
                     }
@@ -228,22 +246,24 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
     return pd.DataFrame(rows)
 
 
-# Test with a single file
-def test_with_single_file():
+# Test size folder or file
+def test_with_subfolder():
     """
-    Test function to process a single file and filter based on time range.
+    Test function to process all files in the Lisbon subfolder.
     """
     config = Config.from_yaml(Path("config.yaml"))
-    filepaths = ["arrivals/Lisbon/LIS_2023-12-01.json"]
+    batches = list_s3_files_by_size(config.bucket_name, config.base_path, config.size_threshold)
 
-    logger.info(f"Testing with file: {filepaths[0]}")
-    df = create_dataframe_from_s3_files(filepaths, config.bucket_name)
+    logger.info(f"Testing with {len(batches)} batches from folder: {config.base_path}")
+    for i, batch in enumerate(batches, start=1):
+        logger.info(f"Processing batch {i} with {len(batch)} files.")
+        df = create_dataframe_from_s3_files(batch, config.bucket_name)
 
-    if df.empty:
-        logger.warning("No rows were extracted from the file.")
-    else:
-        logger.info(f"DataFrame created with {len(df)} rows:")
-        logger.info(df.head())
+        if df.empty:
+            logger.warning(f"No rows were extracted for batch {i}.")
+        else:
+            logger.info(f"Batch {i} DataFrame created with {len(df)} rows:")
+            logger.info(df.head())
 
 
 # Main function to process multiple batches
@@ -252,7 +272,7 @@ def main(event, context):
     Lambda handler function. Processes all batches of files in the S3 bucket.
     """
     config = Config.from_yaml(Path("config.yaml"))
-    size_threshold = 300 * 1024 * 1024  # 300 MB
+    size_threshold = config.size_threshold * 1024 * 1024  # Convert MB to bytes
 
     with make_db_connection(config, DB_PASSWORD) as conn:
         create_table(conn)
@@ -274,6 +294,6 @@ def main(event, context):
 
 if __name__ == "__main__":
     # Test with a single file for debugging
-    test_with_single_file()
+    test_with_subfolder()
 
 
