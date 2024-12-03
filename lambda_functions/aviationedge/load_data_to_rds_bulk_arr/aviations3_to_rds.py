@@ -85,7 +85,7 @@ def list_s3_files_by_size(bucket_name: str, prefix: str, size_threshold: int) ->
     current_batch_size = 0
 
     for file in files:
-        if current_batch_size + file["Size"] > size_threshold:
+        if current_batch_size + file["Size"] > size_threshold * 1024 * 1024:
             # Append the current batch and start a new one
             batches.append(current_batch)
             current_batch = []
@@ -137,11 +137,10 @@ def create_table(conn: connection):
         )
         conn.commit()
 
-
 # Bulk insert data into the table
 def insert_bulk_data_from_dataframe(conn: connection, df: pd.DataFrame):
     """
-    Inserts data from a DataFrame into the database using COPY with ON CONFLICT to avoid duplicates.
+    Inserts data from a DataFrame into the database using COPY.
     """
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, index=False, header=False)
@@ -159,8 +158,7 @@ def insert_bulk_data_from_dataframe(conn: connection, df: pd.DataFrame):
             """,
             csv_buffer,
         )
-        conn.commit()
-
+    conn.commit()
 
 # Parse timestamp
 def parse_timestamp(timestamp):
@@ -174,25 +172,14 @@ def parse_timestamp(timestamp):
             return None
     return None
 
-
 # Create a pandas DataFrame from S3 JSON files
 def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd.DataFrame:
-    """
-    Reads multiple JSON files from S3 and creates a consolidated pandas DataFrame,
-    filtering rows where `arrival_actual_time` is between 06:00:00 and 09:00:00
-    and excluding rows where `arrival_actual_time` is null.
-    """
     rows = []
     for filepath in filepaths:
         download_s3_file(bucket_name, filepath, Path("/tmp/temp.json"))
         try:
             with open("/tmp/temp.json", "r") as f:
                 data = json.load(f)
-
-            # Check if the file contains an error key
-            if isinstance(data, dict) and data.get("error"):
-                logger.warning(f"Skipping file due to error: {data['error']}")
-                continue
 
             for record in data:
                 # Skip codeshared flights
@@ -203,41 +190,35 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                 # Parse `arrival_actual_time`
                 arrival_actual_time = parse_timestamp(record.get("arrival", {}).get("actualTime"))
                 if not arrival_actual_time:
-                    # Skip rows with null `arrival_actual_time`
-                    continue
+                    continue  # Skip rows with null `arrival_actual_time`
 
                 # Filter based on time range
                 if not (6 <= arrival_actual_time.hour < 9):
                     continue
+                
+                # Use the delay from the data
+                departure_delay = int(float(record.get("departure", {}).get("delay", 0) or 0))
+                arrival_delay = int(float(record.get("arrival", {}).get("delay", 0) or 0))
 
-                # Calculate `arrival_delay` (in minutes)
-                arrival_scheduled_time = parse_timestamp(record.get("arrival", {}).get("scheduledTime"))
-                arrival_delay = None
-                if arrival_scheduled_time and arrival_actual_time:
-                    arrival_delay = int((arrival_actual_time - arrival_scheduled_time).total_seconds() // 60)
-
-                rows.append(
-                    {
-                        "flight_number": record.get("flight", {}).get("number"),
-                        "flight_iata_number": record.get("flight", {}).get("iataNumber"),
-                        "type": record.get("type"),
-                        "status": record.get("status"),
-                        "departure_iata": record.get("departure", {}).get("iataCode"),
-                        "departure_delay": int(float(record.get("departure", {}).get("delay", 0) or 0)),
-                        "departure_scheduled_time": parse_timestamp(record.get("departure", {}).get("scheduledTime")),
-                        "departure_actual_time": parse_timestamp(record.get("departure", {}).get("actualTime")),
-                        "arrival_iata": record.get("arrival", {}).get("iataCode"),
-                        "arrival_scheduled_time": arrival_scheduled_time,
-                        "arrival_actual_time": arrival_actual_time,
-                        "arrival_delay": arrival_delay,
-                        "airline_name": record.get("airline", {}).get("name"),
-                        "airline_iata": record.get("airline", {}).get("iataCode"),
-                    }
-                )
+                rows.append({
+                    "flight_number": record.get("flight", {}).get("number"),
+                    "flight_iata_number": record.get("flight", {}).get("iataNumber"),
+                    "type": record.get("type"),
+                    "status": record.get("status"),
+                    "departure_iata": record.get("departure", {}).get("iataCode"),
+                    "departure_delay": departure_delay,
+                    "departure_scheduled_time": parse_timestamp(record.get("departure", {}).get("scheduledTime")),
+                    "departure_actual_time": parse_timestamp(record.get("departure", {}).get("actualTime")),
+                    "arrival_iata": record.get("arrival", {}).get("iataCode"),
+                    "arrival_scheduled_time": parse_timestamp(record.get("arrival", {}).get("scheduledTime")),
+                    "arrival_actual_time": arrival_actual_time,
+                    "arrival_delay": arrival_delay,
+                    "airline_name": record.get("airline", {}).get("name"),
+                    "airline_iata": record.get("airline", {}).get("iataCode"),
+                })
         except Exception as e:
             logger.error(f"Error processing file {filepath}: {e}")
         finally:
-            # Cleanup temporary file
             try:
                 os.remove("/tmp/temp.json")
             except OSError as e:
@@ -245,55 +226,32 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
 
     return pd.DataFrame(rows)
 
-
-# Test size folder or file
-def test_with_subfolder():
-    """
-    Test function to process all files in the Lisbon subfolder.
-    """
-    config = Config.from_yaml(Path("config.yaml"))
-    batches = list_s3_files_by_size(config.bucket_name, config.base_path, config.size_threshold)
-
-    logger.info(f"Testing with {len(batches)} batches from folder: {config.base_path}")
-    for i, batch in enumerate(batches, start=1):
-        logger.info(f"Processing batch {i} with {len(batch)} files.")
-        df = create_dataframe_from_s3_files(batch, config.bucket_name)
-
-        if df.empty:
-            logger.warning(f"No rows were extracted for batch {i}.")
-        else:
-            logger.info(f"Batch {i} DataFrame created with {len(df)} rows:")
-            logger.info(df.head())
-
-
 # Main function to process multiple batches
 def main(event, context):
-    """
-    Lambda handler function. Processes all batches of files in the S3 bucket.
-    """
     config = Config.from_yaml(Path("config.yaml"))
-    size_threshold = config.size_threshold * 1024 * 1024  # Convert MB to bytes
+    size_threshold = config.size_threshold
 
     with make_db_connection(config, DB_PASSWORD) as conn:
         create_table(conn)
 
-        # Fetch batches of files by size
-        batches = list_s3_files_by_size(config.bucket_name, config.base_path, size_threshold)
-        logger.info(f"Found {len(batches)} batches to process.")
+        # Process each city subfolder
+        for city in ["Lisbon", "Zurich"]:
+            logger.info(f"Processing city: {city}")
+            prefix = f"{config.base_path}/{city}/"
+            batches = list_s3_files_by_size(config.bucket_name, prefix, size_threshold)
 
-        for i, batch in enumerate(tqdm(batches), start=1):
-            df = create_dataframe_from_s3_files(batch, config.bucket_name)
-            if not df.empty:
-                insert_bulk_data_from_dataframe(conn, df)
-                logger.info(f"Inserted batch {i} into database.")
-            else:
-                logger.info(f"No rows to insert for batch {i}.")
+            for i, batch in enumerate(tqdm(batches), start=1):
+                df = create_dataframe_from_s3_files(batch, config.bucket_name)
+                if not df.empty:
+                    insert_bulk_data_from_dataframe(conn, df)
+                    logger.info(f"Inserted batch {i} for {city} into database.")
+                else:
+                    logger.info(f"No rows to insert for batch {i} for {city}.")
 
     logger.info("All files processed and data loaded.")
 
-
 if __name__ == "__main__":
-    # Test with a single file for debugging
-    test_with_subfolder()
+    main(None, None)
+
 
 

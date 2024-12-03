@@ -1,24 +1,31 @@
+import os
 import json
 import logging
-import os
 from contextlib import contextmanager
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
-
 import boto3
 import pandas as pd
 import psycopg2
-import yaml
 from psycopg2.extensions import connection
+from dotenv import load_dotenv
+import yaml
+from tqdm import tqdm
 from pydantic import BaseModel
 
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Load environment variables
+load_dotenv()
+DB_PASSWORD = os.getenv("RDS_PASSWORD")
+
+# Boto3 S3 client
 s3_client = boto3.client("s3")
 
-
+# Configurations
 class Config(BaseModel):
     cities: list[str]
     host: str
@@ -26,16 +33,16 @@ class Config(BaseModel):
     port: int
     dbname: str
     bucket_name: str
-    base_path_arrivals: str
-    base_path_departures: str
+    base_path: str
+    size_threshold: int
 
     @classmethod
     def from_yaml(cls, path: Path) -> "Config":
         with open(path, "r") as f:
             config = yaml.safe_load(f)
-            return Config(**config)
+        return Config(**config)
 
-
+# Context manager for DB connections
 @contextmanager
 def make_db_connection(config: Config, db_password: str) -> connection:
     """
@@ -52,114 +59,143 @@ def make_db_connection(config: Config, db_password: str) -> connection:
         )
         yield conn
     except Exception as e:
-        logger.error(f"Database connection error: {str(e)}")
+        logger.error(f"Database connection error: {e}")
         raise
     finally:
-        if conn is not None:
+        if conn:
             conn.close()
 
-
+# List files from S3
 def list_s3_files(bucket_name: str, prefix: str) -> list[str]:
     """
-    List JSON files in an S3 bucket under a specific prefix.
+    List JSON files in an S3 bucket under a given prefix.
     """
     paginator = s3_client.get_paginator("list_objects_v2")
     files = []
     for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
-        files.extend([content["Key"] for content in page.get("Contents", []) if content["Key"].endswith(".json")])
+        files.extend(
+            content["Key"] for content in page.get("Contents", [])
+            if content["Key"].endswith(".json")
+        )
     return sorted(files)
 
-
-def download_s3_file(bucket_name: str, key: str, output_path: Path | str) -> None:
+# Download a file from S3
+def download_s3_file(bucket_name: str, key: str, output_path: Path) -> None:
     """
-    Download a file from S3 to a local path.
+    Downloads a file from S3 to a specified path.
     """
-    s3_client.download_file(bucket_name, key, output_path)
+    s3_client.download_file(bucket_name, key, str(output_path))
 
-
-def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd.DataFrame:
+# Bulk insert data into the table
+def insert_bulk_data_from_dataframe(conn: connection, df: pd.DataFrame):
     """
-    Creates a pandas DataFrame from a list of filepaths pointing to JSON files.
-    """
-    rows = []
-    for filepath in filepaths:
-        download_s3_file(bucket_name, filepath, "/tmp/temp.json")
-        try:
-            with open("/tmp/temp.json", "r") as f:
-                data = json.load(f)
-            for record in data:
-                # Skip if arrival_actual_time is missing
-                arrival_actual_time = record.get("arrival", {}).get("actualTime")
-                if not arrival_actual_time:
-                    continue
-
-                arrival_scheduled_time = record.get("arrival", {}).get("scheduledTime")
-                arrival_delay = None
-                if arrival_scheduled_time:
-                    arrival_delay = (
-                        datetime.fromisoformat(arrival_actual_time) - datetime.fromisoformat(arrival_scheduled_time)
-                    ).total_seconds() // 60
-
-                rows.append(
-                    {
-                        "flight_number": record.get("flight", {}).get("number"),
-                        "arrival_scheduled_time": arrival_scheduled_time,
-                        "arrival_actual_time": arrival_actual_time,
-                        "arrival_delay": arrival_delay,
-                        "departure_iata": record.get("departure", {}).get("iataCode"),
-                        "arrival_iata": record.get("arrival", {}).get("iataCode"),
-                        "airline_name": record.get("airline", {}).get("name"),
-                        "airline_iata": record.get("airline", {}).get("iataCode"),
-                    }
-                )
-        except Exception as e:
-            logger.error(f"Error processing file {filepath}: {str(e)}")
-    return pd.DataFrame(rows)
-
-
-def insert_bulk_data_from_dataframe(conn, df: pd.DataFrame) -> None:
-    """
-    Insert data from a DataFrame into the database.
+    Inserts data from a DataFrame into the database using COPY with ON CONFLICT to avoid duplicates.
     """
     csv_buffer = StringIO()
-    df.to_csv(csv_buffer, index=False, header=True)
+    df.to_csv(csv_buffer, index=False, header=False)
     csv_buffer.seek(0)
 
     with conn.cursor() as cur:
         cur.copy_expert(
             """
             COPY arrivals (
-                flight_number, arrival_scheduled_time, arrival_actual_time, arrival_delay,
-                departure_iata, arrival_iata, airline_name, airline_iata
-            )
-            FROM STDIN WITH CSV HEADER
+                flight_number, flight_iata_number, type, status,
+                departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                arrival_iata, arrival_scheduled_time, arrival_actual_time, arrival_delay,
+                airline_name, airline_iata
+            ) FROM STDIN WITH CSV;
             """,
             csv_buffer,
         )
     conn.commit()
 
+# Create DataFrame from S3 JSON files
+def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd.DataFrame:
+    rows = []
+    for filepath in filepaths:
+        download_s3_file(bucket_name, filepath, Path("/tmp/temp.json"))
+        try:
+            with open("/tmp/temp.json", "r") as f:
+                data = json.load(f)
 
+            for record in data:
+                if "codeshared" in record:
+                    continue  # Skip codeshared flights
+
+                arrival_actual_time = parse_timestamp(record.get("arrival", {}).get("actualTime"))
+                if not arrival_actual_time:
+                    continue  # Skip rows with null `arrival_actual_time`
+
+                if not (6 <= arrival_actual_time.hour < 9):
+                    continue  # Filter based on time range
+
+                arrival_scheduled_time = parse_timestamp(record.get("arrival", {}).get("scheduledTime"))
+                arrival_delay = None
+                if arrival_scheduled_time and arrival_actual_time:
+                    arrival_delay = int((arrival_actual_time - arrival_scheduled_time).total_seconds() // 60)
+
+                rows.append({
+                    "flight_number": record.get("flight", {}).get("number"),
+                    "flight_iata_number": record.get("flight", {}).get("iataNumber"),
+                    "type": record.get("type"),
+                    "status": record.get("status"),
+                    "departure_iata": record.get("departure", {}).get("iataCode"),
+                    "departure_delay": int(float(record.get("departure", {}).get("delay", 0) or 0)),
+                    "departure_scheduled_time": parse_timestamp(record.get("departure", {}).get("scheduledTime")),
+                    "departure_actual_time": parse_timestamp(record.get("departure", {}).get("actualTime")),
+                    "arrival_iata": record.get("arrival", {}).get("iataCode"),
+                    "arrival_scheduled_time": arrival_scheduled_time,
+                    "arrival_actual_time": arrival_actual_time,
+                    "arrival_delay": arrival_delay,
+                    "airline_name": record.get("airline", {}).get("name"),
+                    "airline_iata": record.get("airline", {}).get("iataCode"),
+                })
+        except Exception as e:
+            logger.error(f"Error processing file {filepath}: {e}")
+        finally:
+            try:
+                os.remove("/tmp/temp.json")
+            except OSError as e:
+                logger.warning(f"Error deleting temporary file: {e}")
+
+    return pd.DataFrame(rows)
+
+# Parse timestamp
+def parse_timestamp(timestamp):
+    if timestamp:
+        try:
+            timestamp = timestamp.replace('t', 'T')
+            return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
+        except ValueError as e:
+            logger.error(f"Error parsing timestamp {timestamp}: {e}")
+            return None
+    return None
+
+# Lambda handler function
 def lambda_handler(event, context):
     config = Config.from_yaml(Path(__file__).absolute().parent / "config.yaml")
-    db_password = os.environ["DB_PASSWORD"]
+    db_password = os.environ["RDS_PASSWORD"]
+
     date = datetime.now().strftime("%Y-%m-%d")
+    logger.info(f"Processing files from `{date}` for each city.")
 
     with make_db_connection(config, db_password) as conn:
-        for base_path in [config.base_path_arrivals, config.base_path_departures]:
-            for city in config.cities:
-                prefix = f"{base_path}/{city}/"
-                filepaths = [
-                    key for key in list_s3_files(config.bucket_name, prefix) if date in key
-                ]
-                if filepaths:
-                    logger.info(f"Found {len(filepaths)} files for {city} in {base_path}.")
-                    df = create_dataframe_from_s3_files(filepaths, config.bucket_name)
-                    if not df.empty:
-                        insert_bulk_data_from_dataframe(conn, df)
-                        logger.info(f"Inserted data for {city} from {base_path}.")
-                    else:
-                        logger.warning(f"No data extracted for {city} from {base_path}.")
+        for city in config.cities:
+            prefix = f"{config.base_path}/{city}/"
+            all_files = list_s3_files(config.bucket_name, prefix)
+            daily_files = [f for f in all_files if f"_{date}.json" in f]
 
+            if daily_files:
+                logger.info(f"Found {len(daily_files)} files for {city}.")
+                df = create_dataframe_from_s3_files(daily_files, config.bucket_name)
+                logger.info(f"DataFrame for {city} created with {len(df)} rows.")
+                if not df.empty:
+                    insert_bulk_data_from_dataframe(conn, df)
+                    logger.info(f"Data for `{city}` successfully inserted into the database.")
+            else:
+                logger.info(f"No new files found for {city}.")
+
+    logger.info("All data processed and uploaded.")
 
 if __name__ == "__main__":
     lambda_handler(None, None)

@@ -38,7 +38,7 @@ finally:
     if "conn" in locals():
         conn.close()
 
-# Then: create "arrivals" table
+# Then: create "arrivals" and "departures" tables
 try:
     conn = psycopg2.connect(
         host=RDS_HOST,
@@ -76,8 +76,32 @@ try:
     )
     print("Table 'arrivals' created successfully with the latest constraints.")
 
+    # Create the departures table with the adapted schema
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS departures (
+            id SERIAL PRIMARY KEY,
+            flight_number VARCHAR(20),
+            flight_iata_number VARCHAR(20),
+            type VARCHAR(20),
+            status VARCHAR(20),
+            departure_iata VARCHAR(10),
+            departure_delay INT,
+            departure_scheduled_time TIMESTAMP,
+            departure_actual_time TIMESTAMP,
+            arrival_iata VARCHAR(10),
+            arrival_scheduled_time TIMESTAMP,
+            arrival_estimated_time TIMESTAMP,
+            airline_name VARCHAR(100),
+            airline_iata VARCHAR(10),
+            CONSTRAINT unique_flight UNIQUE (flight_number, departure_scheduled_time, departure_actual_time)
+        );
+        """
+    )
+    print("Table 'departures' created successfully with the latest constraints.")
+
 except Exception as e:
-    print({"statusCode": 500, "message": f"Error creating table: {str(e)}"})
+    print({"statusCode": 500, "message": f"Error creating tables: {str(e)}"})
 
 finally:
     if "cursor" in locals():

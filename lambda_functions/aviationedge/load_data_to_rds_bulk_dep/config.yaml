@@ -1,0 +1,7 @@
+dbname: aviation
+host: "database-1.cmqql8v8h1t6.us-east-1.rds.amazonaws.com"
+port: 5432
+user: postgres
+bucket_name: aviations3
+base_path: departures
+size_threshold: 500
