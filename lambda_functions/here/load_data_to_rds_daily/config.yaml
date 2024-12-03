@@ -1,0 +1,7 @@
+cities: ["London", "Paris", "Madrid", "Frankfurt am Main", "Zürich", "Moscow", "Amsterdam", "Lisbon", "Rome", "Dublin", "Vienna"]
+dbname: test
+host: "database-1.ctucciegycsj.us-east-1.rds.amazonaws.com"
+port: 5432
+user: postgres
+bucket_name: tomtom-api-data
+base_path: here/traffic_volume
