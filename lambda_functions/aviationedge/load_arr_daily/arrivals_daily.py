@@ -11,7 +11,6 @@ import psycopg2
 from psycopg2.extensions import connection
 from dotenv import load_dotenv
 import yaml
-from tqdm import tqdm
 from pydantic import BaseModel
 
 # Configure logging
@@ -34,7 +33,6 @@ class Config(BaseModel):
     dbname: str
     bucket_name: str
     base_path: str
-    size_threshold: int
 
     @classmethod
     def from_yaml(cls, path: Path) -> "Config":
@@ -45,9 +43,6 @@ class Config(BaseModel):
 # Context manager for DB connections
 @contextmanager
 def make_db_connection(config: Config, db_password: str) -> connection:
-    """
-    Creates and manages a database connection.
-    """
     conn = None
     try:
         conn = psycopg2.connect(
@@ -67,9 +62,6 @@ def make_db_connection(config: Config, db_password: str) -> connection:
 
 # List files from S3
 def list_s3_files(bucket_name: str, prefix: str) -> list[str]:
-    """
-    List JSON files in an S3 bucket under a given prefix.
-    """
     paginator = s3_client.get_paginator("list_objects_v2")
     files = []
     for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
@@ -81,16 +73,10 @@ def list_s3_files(bucket_name: str, prefix: str) -> list[str]:
 
 # Download a file from S3
 def download_s3_file(bucket_name: str, key: str, output_path: Path) -> None:
-    """
-    Downloads a file from S3 to a specified path.
-    """
     s3_client.download_file(bucket_name, key, str(output_path))
 
 # Bulk insert data into the table
 def insert_bulk_data_from_dataframe(conn: connection, df: pd.DataFrame):
-    """
-    Inserts data from a DataFrame into the database using COPY with ON CONFLICT to avoid duplicates.
-    """
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, index=False, header=False)
     csv_buffer.seek(0)
@@ -126,13 +112,13 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                 if not arrival_actual_time:
                     continue  # Skip rows with null `arrival_actual_time`
 
+                # Limit processing to arrivals between 06:00 and 09:00
                 if not (6 <= arrival_actual_time.hour < 9):
-                    continue  # Filter based on time range
+                    continue  
 
-                arrival_scheduled_time = parse_timestamp(record.get("arrival", {}).get("scheduledTime"))
-                arrival_delay = None
-                if arrival_scheduled_time and arrival_actual_time:
-                    arrival_delay = int((arrival_actual_time - arrival_scheduled_time).total_seconds() // 60)
+                # Use the delay from the data
+                departure_delay = int(float(record.get("departure", {}).get("delay", 0) or 0))
+                arrival_delay = int(float(record.get("arrival", {}).get("delay", 0) or 0))
 
                 rows.append({
                     "flight_number": record.get("flight", {}).get("number"),
@@ -140,11 +126,11 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                     "type": record.get("type"),
                     "status": record.get("status"),
                     "departure_iata": record.get("departure", {}).get("iataCode"),
-                    "departure_delay": int(float(record.get("departure", {}).get("delay", 0) or 0)),
+                    "departure_delay": departure_delay,
                     "departure_scheduled_time": parse_timestamp(record.get("departure", {}).get("scheduledTime")),
                     "departure_actual_time": parse_timestamp(record.get("departure", {}).get("actualTime")),
                     "arrival_iata": record.get("arrival", {}).get("iataCode"),
-                    "arrival_scheduled_time": arrival_scheduled_time,
+                    "arrival_scheduled_time": parse_timestamp(record.get("arrival", {}).get("scheduledTime")),
                     "arrival_actual_time": arrival_actual_time,
                     "arrival_delay": arrival_delay,
                     "airline_name": record.get("airline", {}).get("name"),
@@ -199,3 +185,4 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     lambda_handler(None, None)
+

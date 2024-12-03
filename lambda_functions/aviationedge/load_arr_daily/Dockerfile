@@ -8,10 +8,10 @@ COPY requirements.txt ${LAMBDA_TASK_ROOT}
 RUN pip install -r requirements.txt
 
 # Copy function code
-COPY aviations3_to_rds_daily.py ${LAMBDA_TASK_ROOT}
+COPY arrivals_daily.py ${LAMBDA_TASK_ROOT}
 
 # Copy config file
 COPY config.yaml ${LAMBDA_TASK_ROOT}
 
 # Set the CMD to your handler
-CMD [ "aviations3_to_rds_daily.lambda_handler" ]
+CMD [ "arrivals_daily.lambda_handler" ]
