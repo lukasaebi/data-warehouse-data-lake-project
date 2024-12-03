@@ -8,10 +8,10 @@ COPY requirements.txt ${LAMBDA_TASK_ROOT}
 RUN pip install -r requirements.txt
 
 # Copy function code
-COPY arrival_daily.py ${LAMBDA_TASK_ROOT}
+COPY departure_daily.py ${LAMBDA_TASK_ROOT}
 
 # Copy config file
 COPY config.yaml ${LAMBDA_TASK_ROOT}
 
 # Set the CMD to your handler
-CMD [ "arrival_daily.lambda_handler" ]
+CMD [ "departure_daily.lambda_handler" ]

@@ -1,5 +1,5 @@
 {
-    "FunctionName": "load_data_to_rds",
+    "FunctionName": "departure_bulk_lambda",
     "Timeout": 900,
     "MemorySize": 1024,
     "EphemeralStorage": {
