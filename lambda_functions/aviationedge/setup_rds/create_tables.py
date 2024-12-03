@@ -14,7 +14,7 @@ try:
         host=RDS_HOST,
         user=RDS_USER,
         password=RDS_PASSWORD,
-        port=5432,  
+        port=5432,
         dbname="postgres",
     )
     conn.autocommit = True
@@ -51,7 +51,7 @@ try:
 
     cursor = conn.cursor()
 
-    # create the arrivals table
+    # Create the arrivals table with the latest schema
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS arrivals (
@@ -69,11 +69,12 @@ try:
             arrival_actual_time TIMESTAMP,
             arrival_delay INT,
             airline_name VARCHAR(100),
-            airline_iata VARCHAR(10)
+            airline_iata VARCHAR(10),
+            CONSTRAINT unique_flight UNIQUE (flight_number, arrival_scheduled_time, arrival_actual_time)
         );
         """
     )
-    print("Table 'arrivals' created successfully.")
+    print("Table 'arrivals' created successfully with the latest constraints.")
 
 except Exception as e:
     print({"statusCode": 500, "message": f"Error creating table: {str(e)}"})
@@ -83,4 +84,5 @@ finally:
         cursor.close()
     if "conn" in locals():
         conn.close()
+
 
