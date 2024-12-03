@@ -13,4 +13,4 @@ COPY departure_batch.py ${LAMBDA_TASK_ROOT}/
 COPY config.yaml ${LAMBDA_TASK_ROOT}/
 
 # Set the default handler for the Lambda function
-CMD ["departure_batch_lambda.main"]
+CMD ["departure_batch.main"]

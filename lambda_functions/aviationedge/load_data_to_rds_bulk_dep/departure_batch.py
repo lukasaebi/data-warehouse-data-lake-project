@@ -139,25 +139,58 @@ def create_table(conn: connection):
 # Bulk insert data into the departures table
 def insert_bulk_data_from_dataframe(conn: connection, df: pd.DataFrame):
     """
-    Inserts data from a DataFrame into the departures database table using COPY.
+    Inserts data from a DataFrame into the departures database table,
+    skipping rows that violate unique constraints.
     """
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, index=False, header=False)
     csv_buffer.seek(0)
 
     with conn.cursor() as cur:
-        cur.copy_expert(
-            """
-            COPY departures (
-                flight_number, flight_iata_number, type, status,
-                departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
-                arrival_iata, arrival_scheduled_time, arrival_estimated_time,
-                airline_name, airline_iata
-            ) FROM STDIN WITH CSV;
-            """,
-            csv_buffer,
-        )
-    conn.commit()
+        try:
+            # Use COPY to load data into a temporary table
+            cur.execute("CREATE TEMP TABLE temp_departures (LIKE departures INCLUDING ALL);")
+            cur.copy_expert(
+                """
+                COPY temp_departures (
+                    flight_number, flight_iata_number, type, status,
+                    departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                    arrival_iata, arrival_scheduled_time, arrival_estimated_time,
+                    airline_name, airline_iata
+                ) FROM STDIN WITH CSV;
+                """,
+                csv_buffer,
+            )
+
+            # Insert data into the main table, explicitly specifying columns
+            cur.execute(
+                """
+                INSERT INTO departures (
+                    flight_number, flight_iata_number, type, status,
+                    departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                    arrival_iata, arrival_scheduled_time, arrival_estimated_time,
+                    airline_name, airline_iata
+                )
+                SELECT 
+                    flight_number, flight_iata_number, type, status,
+                    departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                    arrival_iata, arrival_scheduled_time, arrival_estimated_time,
+                    airline_name, airline_iata
+                FROM temp_departures
+                ON CONFLICT (flight_number, departure_scheduled_time, departure_actual_time) DO NOTHING;
+                """
+            )
+            conn.commit()
+            logger.info("Batch inserted successfully, duplicates skipped.")
+
+        except Exception as e:
+            logger.error(f"Error inserting batch: {e}")
+            conn.rollback()
+        finally:
+            # Clean up the temporary table
+            cur.execute("DROP TABLE IF EXISTS temp_departures;")
+
+
 
 # Parse timestamp
 def parse_timestamp(timestamp):
@@ -180,8 +213,15 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
             with open("/tmp/temp.json", "r") as f:
                 data = json.load(f)
 
+            if not isinstance(data, list):
+                raise ValueError(f"Unexpected JSON structure in {filepath}")
+
             for record in data:
                 # Skip codeshared flights
+                if not isinstance(record, dict):
+                    logger.warning(f"Skipping invalid record in {filepath}: {record}")
+                    continue
+
                 if "codeshared" in record:
                     logger.info(f"Skipping codeshared flight: {record.get('codeshared')}")
                     continue
@@ -190,7 +230,7 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                 departure_actual_time = parse_timestamp(record.get("departure", {}).get("actualTime"))
                 if not departure_actual_time:
                     continue  # Skip rows with null `departure_actual_time`
-                
+
                 # Filter: Only include rows between 06:00:00 and 09:00:00
                 if not (6 <= departure_actual_time.hour < 9):
                     continue  # Skip rows outside of the specified time range
@@ -213,7 +253,7 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                     "airline_name": record.get("airline", {}).get("name"),
                     "airline_iata": record.get("airline", {}).get("iataCode"),
                 })
-        except Exception as e:
+        except (ValueError, json.JSONDecodeError) as e:
             logger.error(f"Error processing file {filepath}: {e}")
         finally:
             try:
@@ -222,6 +262,7 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                 logger.warning(f"Error deleting temporary file: {e}")
 
     return pd.DataFrame(rows)
+
 
 # Main function to process multiple batches for departures
 def main(event, context):
@@ -232,7 +273,7 @@ def main(event, context):
         create_table(conn)
 
         # Process each city subfolder
-        for city in ["Lisbon", "Zurich"]:
+        for city in ["Amsterdam", "Dublin", "Frankfurt", "Lisbon", "London1", "London2", "Madrid", "Moscow", "Paris", "Rome", "Vienna", "Zurich"]:
             logger.info(f"Processing city: {city}")
             prefix = f"{config.base_path}/{city}/"
             batches = list_s3_files_by_size(config.bucket_name, prefix, size_threshold)

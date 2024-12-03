@@ -1,5 +1,5 @@
 {
-    "FunctionName": "departure_bulk_lambda",
+    "FunctionName": "departure_batch_lambda",
     "Timeout": 900,
     "MemorySize": 1024,
     "EphemeralStorage": {

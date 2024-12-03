@@ -235,7 +235,7 @@ def main(event, context):
         create_table(conn)
 
         # Process each city subfolder
-        for city in ["Lisbon", "Zurich"]:
+        for city in ["Amsterdam", "Dublin", "Frankfurt", "Lisbon", "London1", "London2", "Madrid", "Moscow", "Paris", "Rome", "Vienna", "Zurich"]:
             logger.info(f"Processing city: {city}")
             prefix = f"{config.base_path}/{city}/"
             batches = list_s3_files_by_size(config.bucket_name, prefix, size_threshold)
