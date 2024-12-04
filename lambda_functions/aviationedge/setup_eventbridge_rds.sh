@@ -14,7 +14,7 @@ START_MINUTE=$2  # Start minute as provided by the user
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
 RULE_NAME="${FUNCTION_NAME}_DailyTrigger"
-START_HOUR=12  # hour
+START_HOUR=10  # hour
 
 # Create Event Rule
 rule_exists=$(aws events list-rules --query "length(Rules[?Name=='$RULE_NAME'])" --output text)

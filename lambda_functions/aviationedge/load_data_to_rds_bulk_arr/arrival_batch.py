@@ -140,32 +140,61 @@ def create_table(conn: connection):
 # Bulk insert data into the table
 def insert_bulk_data_from_dataframe(conn: connection, df: pd.DataFrame):
     """
-    Inserts data from a DataFrame into the database using COPY.
+    Inserts data from a DataFrame into the database using COPY,
+    handling duplicates with ON CONFLICT DO NOTHING.
     """
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, index=False, header=False)
     csv_buffer.seek(0)
 
     with conn.cursor() as cur:
-        cur.copy_expert(
-            """
-            COPY arrivals (
-                flight_number, flight_iata_number, type, status,
-                departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
-                arrival_iata, arrival_scheduled_time, arrival_actual_time, arrival_delay,
-                airline_name, airline_iata
-            ) FROM STDIN WITH CSV;
-            """,
-            csv_buffer,
-        )
-    conn.commit()
+        try:
+            # Use COPY to load data into a temporary table
+            cur.execute("CREATE TEMP TABLE temp_arrivals (LIKE arrivals INCLUDING ALL);")
+            cur.copy_expert(
+                """
+                COPY temp_arrivals (
+                    flight_number, flight_iata_number, type, status,
+                    departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                    arrival_iata, arrival_scheduled_time, arrival_actual_time, arrival_delay,
+                    airline_name, airline_iata
+                ) FROM STDIN WITH CSV;
+                """,
+                csv_buffer,
+            )
+
+            # Insert data into the main table, skipping duplicates
+            cur.execute(
+                """
+                INSERT INTO arrivals (
+                    flight_number, flight_iata_number, type, status,
+                    departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                    arrival_iata, arrival_scheduled_time, arrival_actual_time, arrival_delay,
+                    airline_name, airline_iata
+                )
+                SELECT 
+                    flight_number, flight_iata_number, type, status,
+                    departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                    arrival_iata, arrival_scheduled_time, arrival_actual_time, arrival_delay,
+                    airline_name, airline_iata
+                FROM temp_arrivals
+                ON CONFLICT (flight_number, arrival_scheduled_time, arrival_actual_time) DO NOTHING;
+                """
+            )
+            conn.commit()
+            logger.info("Batch inserted successfully, duplicates skipped.")
+
+        except Exception as e:
+            logger.error(f"Error inserting batch: {e}")
+            conn.rollback()
+        finally:
+            cur.execute("DROP TABLE IF EXISTS temp_arrivals;")
 
 # Parse timestamp
 def parse_timestamp(timestamp):
     if timestamp:
         try:
-            # Replace 't' with 'T' to match ISO 8601 format
-            timestamp = timestamp.replace('t', 'T')
+            timestamp = timestamp.replace('t', 'T')  # Replace 't' with 'T' to match ISO 8601 format
             return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
         except ValueError as e:
             logger.error(f"Error parsing timestamp {timestamp}: {e}")
@@ -181,7 +210,14 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
             with open("/tmp/temp.json", "r") as f:
                 data = json.load(f)
 
+            if not isinstance(data, list):
+                raise ValueError(f"Unexpected JSON structure in {filepath}")
+
             for record in data:
+                if not isinstance(record, dict):
+                    logger.warning(f"Skipping invalid record in {filepath}: {record}")
+                    continue
+
                 # Skip codeshared flights
                 if "codeshared" in record:
                     logger.info(f"Skipping codeshared flight: {record.get('codeshared')}")
@@ -192,12 +228,10 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                 if not arrival_actual_time:
                     continue  # Skip rows with null `arrival_actual_time`
 
-                # Filter based on time range
+                # Filter: Only include rows between 06:00:00 and 09:00:00
                 if not (6 <= arrival_actual_time.hour < 9):
-                    continue
-                
-                # Use the delay from the data
-                departure_delay = int(float(record.get("departure", {}).get("delay", 0) or 0))
+                    continue  # Skip rows outside of the specified time range
+
                 arrival_delay = int(float(record.get("arrival", {}).get("delay", 0) or 0))
 
                 rows.append({
@@ -206,7 +240,7 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                     "type": record.get("type"),
                     "status": record.get("status"),
                     "departure_iata": record.get("departure", {}).get("iataCode"),
-                    "departure_delay": departure_delay,
+                    "departure_delay": int(float(record.get("departure", {}).get("delay", 0) or 0)),
                     "departure_scheduled_time": parse_timestamp(record.get("departure", {}).get("scheduledTime")),
                     "departure_actual_time": parse_timestamp(record.get("departure", {}).get("actualTime")),
                     "arrival_iata": record.get("arrival", {}).get("iataCode"),
@@ -216,7 +250,7 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
                     "airline_name": record.get("airline", {}).get("name"),
                     "airline_iata": record.get("airline", {}).get("iataCode"),
                 })
-        except Exception as e:
+        except (ValueError, json.JSONDecodeError) as e:
             logger.error(f"Error processing file {filepath}: {e}")
         finally:
             try:
@@ -252,6 +286,7 @@ def main(event, context):
 
 if __name__ == "__main__":
     main(None, None)
+
 
 
 

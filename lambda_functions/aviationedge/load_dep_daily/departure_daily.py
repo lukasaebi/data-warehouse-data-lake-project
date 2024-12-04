@@ -2,7 +2,7 @@ import os
 import json
 import logging
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
 import boto3
@@ -82,20 +82,50 @@ def insert_bulk_data_from_dataframe(conn: connection, df: pd.DataFrame):
     csv_buffer.seek(0)
 
     with conn.cursor() as cur:
-        cur.copy_expert(
-            """
-            COPY departures (
-                flight_number, flight_iata_number, type, status,
-                departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
-                arrival_iata, arrival_scheduled_time, arrival_estimated_time,
-                airline_name, airline_iata
-            ) FROM STDIN WITH CSV;
-            """,
-            csv_buffer,
-        )
-    conn.commit()
+        try:
+            # Use a temporary table to handle duplicates
+            cur.execute("CREATE TEMP TABLE temp_departures (LIKE departures INCLUDING ALL);")
+            cur.copy_expert(
+                """
+                COPY temp_departures (
+                    flight_number, flight_iata_number, type, status,
+                    departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                    arrival_iata, arrival_scheduled_time, arrival_estimated_time,
+                    airline_name, airline_iata
+                ) FROM STDIN WITH CSV;
+                """,
+                csv_buffer,
+            )
 
-# Create DataFrame from S3 JSON files
+            # Insert data into the main table, skipping duplicates
+            cur.execute(
+                """
+                INSERT INTO departures (
+                    flight_number, flight_iata_number, type, status,
+                    departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                    arrival_iata, arrival_scheduled_time, arrival_estimated_time,
+                    airline_name, airline_iata
+                )
+                SELECT 
+                    flight_number, flight_iata_number, type, status,
+                    departure_iata, departure_delay, departure_scheduled_time, departure_actual_time,
+                    arrival_iata, arrival_scheduled_time, arrival_estimated_time,
+                    airline_name, airline_iata
+                FROM temp_departures
+                ON CONFLICT (flight_number, departure_scheduled_time, departure_actual_time) DO NOTHING;
+                """
+            )
+            conn.commit()
+            logger.info("Batch inserted successfully, duplicates skipped.")
+
+        except Exception as e:
+            logger.error(f"Error inserting batch: {e}")
+            conn.rollback()
+        finally:
+            # Clean up the temporary table
+            cur.execute("DROP TABLE IF EXISTS temp_departures;")
+
+# Create a pandas DataFrame from S3 JSON files
 def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd.DataFrame:
     rows = []
     for filepath in filepaths:
@@ -104,20 +134,27 @@ def create_dataframe_from_s3_files(filepaths: list[str], bucket_name: str) -> pd
             with open("/tmp/temp.json", "r") as f:
                 data = json.load(f)
 
+            if not isinstance(data, list):
+                raise ValueError(f"Unexpected JSON structure in {filepath}")
+
             for record in data:
+                if not isinstance(record, dict):
+                    logger.warning(f"Skipping invalid record in {filepath}: {record}")
+                    continue
+
                 if "codeshared" in record:
-                    continue  # Skip codeshared flights
+                    logger.info(f"Skipping codeshared flight: {record.get('codeshared')}")
+                    continue
 
                 # Parse `departure_actual_time`
                 departure_actual_time = parse_timestamp(record.get("departure", {}).get("actualTime"))
                 if not departure_actual_time:
                     continue  # Skip rows with null `departure_actual_time`
 
-                # Limit processing to departures between 06:00 and 09:00
+                # Filter: Only include rows between 06:00:00 and 09:00:00
                 if not (6 <= departure_actual_time.hour < 9):
-                    continue  
+                    continue  # Skip rows outside of the specified time range
 
-                # Use the delay from the data
                 departure_delay = int(float(record.get("departure", {}).get("delay", 0) or 0))
 
                 rows.append({
@@ -156,33 +193,46 @@ def parse_timestamp(timestamp):
             return None
     return None
 
+# Calculate the target date (today - 4 days)
+def get_date_four_days_ago():
+    """Get the date string for today - 4 days."""
+    return (datetime.now() - timedelta(days=4)).strftime("%Y-%m-%d")
+
 # Lambda handler function
 def lambda_handler(event, context):
-    config = Config.from_yaml(Path(__file__).absolute().parent / "config.yaml")
+    config = Config.from_yaml(Path("config.yaml"))
     db_password = os.environ["RDS_PASSWORD"]
 
-    date = datetime.now().strftime("%Y-%m-%d")
-    logger.info(f"Processing files from `{date}` for each city.")
+    # Determine the date 4 days ago
+    target_date = get_date_four_days_ago()
+    logger.info(f"Processing files from `{target_date}` for each city.")
 
     with make_db_connection(config, db_password) as conn:
         for city in config.cities:
+            logger.info(f"Checking subfolder for city: {city}")
             prefix = f"{config.base_path}/{city}/"
             all_files = list_s3_files(config.bucket_name, prefix)
-            daily_files = [f for f in all_files if f"_{date}.json" in f]
+
+            # Filter files for the specific date 4 days ago
+            daily_files = [f for f in all_files if f"_{target_date}.json" in f]
 
             if daily_files:
-                logger.info(f"Found {len(daily_files)} files for {city}.")
+                logger.info(f"Found {len(daily_files)} files for {city} for date {target_date}.")
+                
+                # Process all files for the target date
                 df = create_dataframe_from_s3_files(daily_files, config.bucket_name)
                 logger.info(f"DataFrame for {city} created with {len(df)} rows.")
                 if not df.empty:
                     insert_bulk_data_from_dataframe(conn, df)
                     logger.info(f"Data for `{city}` successfully inserted into the database.")
             else:
-                logger.info(f"No new files found for {city}.")
+                logger.info(f"No files found for {city} for date {target_date}.")
 
     logger.info("All data processed and uploaded.")
 
 if __name__ == "__main__":
     lambda_handler(None, None)
+
+
 
 
