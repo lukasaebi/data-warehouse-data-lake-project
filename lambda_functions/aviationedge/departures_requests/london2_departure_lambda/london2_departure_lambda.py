@@ -92,11 +92,11 @@ def lambda_handler(event, context):
                 # Determine S3 key format
                 if len(date_segments) == 1:
                     # Daily fetch: Save as {iata_code}_{date}.json
-                    s3_key = f"departures/{city}/{iata_code}_{start_date}.json"
+                    s3_key = f"aviations3/departures/{city}/{iata_code}_{start_date}.json"
                 else:
                     # Weekly fetch: Save as {iata_code}_week{week_num}.json
                     week_num = date_segments.index((start_date, end_date)) + 1
-                    s3_key = f"departures/{city}/{iata_code}_week{week_num}.json"
+                    s3_key = f"aviations3/departures/{city}/{iata_code}_week{week_num}.json"
                 
                 upload_departure_data_to_s3(data, target_bucket, s3_key)
                 print(f"Stored data for {iata_code} in {s3_key}")

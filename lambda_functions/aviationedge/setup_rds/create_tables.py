@@ -8,26 +8,26 @@ RDS_HOST = os.getenv("RDS_HOST")
 RDS_USER = os.getenv("RDS_USER")
 RDS_PASSWORD = os.getenv("RDS_PASSWORD")
 
-# First: connect to default "postgres" database to create the "aviation" database
+# First: connect to default "postgres" database to create the "master" database
 try:
     conn = psycopg2.connect(
         host=RDS_HOST,
         user=RDS_USER,
         password=RDS_PASSWORD,
         port=5432,
-        dbname="postgres",
+        dbname="master",
     )
     conn.autocommit = True
 
     cursor = conn.cursor()
 
-    # Query to create the "aviation" database if it doesn't exist
-    cursor.execute("SELECT 1 FROM pg_database WHERE datname = 'aviation';")
+    # Query to create the "master" database if it doesn't exist
+    cursor.execute("SELECT 1 FROM pg_database WHERE datname = 'master';")
     if not cursor.fetchone():
-        cursor.execute("CREATE DATABASE aviation;")
-        print("Database 'aviation' has been created successfully.")
+        cursor.execute("CREATE DATABASE master;")
+        print("Database 'master' has been created successfully.")
     else:
-        print("Database 'aviation' already exists.")
+        print("Database 'master' already exists.")
 
 except Exception as e:
     print({"statusCode": 500, "message": f"Error connecting to RDS or creating database: {str(e)}"})
@@ -45,7 +45,7 @@ try:
         user=RDS_USER,
         password=RDS_PASSWORD,
         port=5432,
-        dbname="aviation",
+        dbname="master",
     )
     conn.autocommit = True
 

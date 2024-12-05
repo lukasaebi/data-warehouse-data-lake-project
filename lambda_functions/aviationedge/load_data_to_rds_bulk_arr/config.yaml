@@ -1,7 +1,7 @@
-dbname: aviation
-host: "database-1.cmqql8v8h1t6.us-east-1.rds.amazonaws.com"
+dbname: master
+host: "database-1.czvyaxqqhlav.us-east-1.rds.amazonaws.com"
 port: 5432
 user: postgres
-bucket_name: aviations3
-base_path: arrivals
+bucket_name: hslu-project-data
+base_path: aviations3/arrivals
 size_threshold: 500

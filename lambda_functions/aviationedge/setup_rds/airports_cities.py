@@ -17,7 +17,7 @@ try:
         user=RDS_USER,
         password=RDS_PASSWORD,
         port=5432,
-        dbname="aviation",
+        dbname="master",
     )
     conn.autocommit = True
 

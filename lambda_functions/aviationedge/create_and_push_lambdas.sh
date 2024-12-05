@@ -15,8 +15,8 @@ BASE_DIR="/home/carlo13/hslu/data-warehouse-data-lake-project/lambda_functions/a
 # Function to process each city
 process_city() {
   CITY=$1
-  ARRIVAL_LAMBDA_DIR="$BASE_DIR/arrivals_requests/${CITY}_arrival_lambda"
-  DEPARTURE_LAMBDA_DIR="$BASE_DIR/departures_requests/${CITY}_departure_lambda"
+  ARRIVAL_LAMBDA_DIR="$BASE_DIR/aviations3/arrivals_requests/${CITY}_arrival_lambda"
+  DEPARTURE_LAMBDA_DIR="$BASE_DIR/aviations3/departures_requests/${CITY}_departure_lambda"
   ARRIVAL_REPO_NAME="${CITY}-arrival-lambda-repo"
   DEPARTURE_REPO_NAME="${CITY}-departure-lambda-repo"
 

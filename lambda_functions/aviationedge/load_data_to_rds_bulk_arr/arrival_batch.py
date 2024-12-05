@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
-S3_BUCKET = os.getenv("S3_BUCKET", "aviations3")
+S3_BUCKET = os.getenv("S3_BUCKET", "hslu-project-data")
 DB_PASSWORD = os.getenv("RDS_PASSWORD")
 
 # Boto3 S3 client
