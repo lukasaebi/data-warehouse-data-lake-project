@@ -4,14 +4,15 @@
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::767533812262:root"
-            },
+                "AWS": "arn:aws:iam::605980481691:root"
+            },                       
             "Action": [
                 "s3:ListBucket",
-                "s3:GetObject"
+                "s3:GetObject",
+                "s3:GetObjectTagging"
             ],
             "Resource": [
-                "arn:aws:s3:::aviations3", 
+                "arn:aws:s3:::aviations3",
                 "arn:aws:s3:::aviations3/*"
             ]
         }
