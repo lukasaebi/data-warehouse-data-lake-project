@@ -1,0 +1,18 @@
+{
+    "AWS_REGION": "us-east-1",
+    "DB_INSTANCE_IDENTIFIER": "weather-pollution-db",
+    "DB_INSTANCE_CLASS": "db.t3.micro",
+    "ENGINE": "postgres",
+    "ENGINE_VERSION": "14.10",
+    "ALLOCATED_STORAGE": 20,
+    "RDS_USER": "timzoller",
+    "RDS_PASSWORD": "rdspassword.4932",
+    "SECURITY_GROUP_ID": "sg-0f398141a880e6100",
+    "BACKUP_RETENTION_PERIOD": 7,
+    "DB_HOST": "database-1.czvyaxqqhlav.us-east-1.rds.amazonaws.com",
+    "DB_PORT": 5432,
+    "DB_NAME": "master",
+    "DB_USER": "postgres",
+    "DB_PASSWORD": "%*36ZK8E3U%Fz&TPz6s3"
+  }
+  
