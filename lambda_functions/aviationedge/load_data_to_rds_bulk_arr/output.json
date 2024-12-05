@@ -1,0 +1,1 @@
+{"errorMessage": "relation \"unique_flight\" already exists\n", "errorType": "DuplicateTable", "requestId": "7001b002-dceb-4369-9a06-e04ab0a9a253", "stackTrace": ["  File \"/var/task/arrival_batch.py\", line 269, in main\n    create_table(conn)\n", "  File \"/var/task/arrival_batch.py\", line 116, in create_table\n    cur.execute(\n"]}

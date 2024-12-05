@@ -131,7 +131,7 @@ def create_table(conn: connection):
                 arrival_delay INT,
                 airline_name VARCHAR(100),
                 airline_iata VARCHAR(10),
-                CONSTRAINT unique_flight UNIQUE (flight_number, arrival_scheduled_time, arrival_actual_time)
+                CONSTRAINT unique_flight_ar UNIQUE (flight_number, arrival_scheduled_time, arrival_actual_time)
             );
             """
         )
