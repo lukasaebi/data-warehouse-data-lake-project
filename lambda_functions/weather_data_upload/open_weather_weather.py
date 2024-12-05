@@ -143,7 +143,8 @@ def fetch_weather(coordinates, api_key, time_ranges):
                             # Füge den einzelnen Datensatz der flachen Datenstruktur hinzu
                             all_data.append(record)
                 else:
-                    print(f"Fehlerhafte Anfrage für {place} ({lat}, {lon}). Statuscode: {response.status_code}")
+                    # Fehlerhafte Anfragen debuggen
+                    print(f"Fehlerhafte Anfrage für {place} ({lat}, {lon}). Statuscode: {response.status_code}, Antwort: {response.text}")
 
             except requests.exceptions.RequestException as e:
                 print(f"Ein Fehler ist aufgetreten für {place} ({lat}, {lon}): {e}")
@@ -154,6 +155,7 @@ def fetch_weather(coordinates, api_key, time_ranges):
     return all_data   # Gib die gesammelten Daten in flacher Struktur zurück
 
 
+
 def lambda_handler(event, context):
     if not api_key or not S3_BUCKET_NAME:
         return {
@@ -162,7 +164,7 @@ def lambda_handler(event, context):
         }
 
     # S3-Schlüssel definieren
-    s3_key = "weather_data.json"
+    s3_key = "wetter/weather_data.json"
     
     # Bestehende Daten abrufen
     existing_data = fetch_existing_data_from_s3(s3_client, S3_BUCKET_NAME, s3_key)

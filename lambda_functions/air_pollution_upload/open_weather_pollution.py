@@ -122,7 +122,7 @@ def lambda_handler(event, context):
         }
 
     # S3-Schlüssel definieren
-    s3_key = "air_pollution_data.json"
+    s3_key = "pollution/air_pollution_data.json"
 
     # Bestehende Daten abrufen
     existing_data = fetch_existing_data_from_s3(s3_client, S3_BUCKET_NAME, s3_key)
