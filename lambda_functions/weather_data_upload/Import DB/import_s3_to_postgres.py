@@ -19,7 +19,7 @@ DB_CONFIG = {
     "host": config["DB_HOST"],
     "port": int(config["DB_PORT"]),
     "dbname": config["DB_NAME"],
-    "user": config("DB_USER"),  
+    "user": config["DB_USER"],  
     "password": os.getenv("DB_PASSWORD")  
 }
 

@@ -12,7 +12,6 @@
     "DB_HOST": "database-1.czvyaxqqhlav.us-east-1.rds.amazonaws.com",
     "DB_PORT": 5432,
     "DB_NAME": "master",
-    "DB_USER": "postgres",
-    "DB_PASSWORD": "%*36ZK8E3U%Fz&TPz6s3"
+    "DB_USER": "postgres"
   }
   
