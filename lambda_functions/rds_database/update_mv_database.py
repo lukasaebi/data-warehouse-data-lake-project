@@ -64,7 +64,11 @@ def lambda_handler(event, context):
 
     # List of materialized views to refresh
     materialized_views = [
-        "air_pollution_v"
+        "flights_v",
+        "air_pollution_v",
+        "road_traffic_v",
+        "weather_v",
+        "master_view_v"
     ]
 
     # Call the function to refresh materialized views
