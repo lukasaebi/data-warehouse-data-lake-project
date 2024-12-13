@@ -51,13 +51,26 @@ def refresh_materialized_views(views, db_config):
             cursor.close()
             conn.close()
 
-if __name__ == "__main__":
+# Lambda entry point
+def lambda_handler(event, context):
+    """
+    AWS Lambda handler function.
+    """
+    # Load the configuration directly from config.yaml
     config = load_config("config.yaml")
-    db_config = config["database"]
+    
+    # Use the root-level config as db_config
+    db_config = config
 
     # List of materialized views to refresh
     materialized_views = [
-        "flights_departures"
+        "air_pollution_v"
     ]
 
+    # Call the function to refresh materialized views
     refresh_materialized_views(materialized_views, db_config)
+    
+    # Return a success message
+    return {"statusCode": 200, "body": "Materialized views refreshed successfully."}
+
+
