@@ -10,11 +10,11 @@
 <br />
 <div align="center">
   <a href="https://github.com/github_username/repo_name">
-    <img src="images/logo.jpg" alt="Logo" width="200" height="200">
+    <img src="images/logo.jpg" alt="Logo" width="300" height="300">
   </a>
 </div>
 
-## Analysis of Road Traffic, Air Traffic, and Weather Conditions on Air Quality Around Airports
+## Analysis of Road Traffic, Air Traffic & Weather Conditions on Air Quality around Airports
 
 This project focuses on analyzing the impact of road traffic, air traffic, and weather conditions on air quality around major European airports. Using data from multiple APIs ([OpenWeather][openweather-url], [HERE Traffic][here-url], and [Aviation Edge][aviationedge-url]), the project developed a robust data pipeline and warehouse architecture within [AWS][aws-url]. The solution integrates raw data, processes it through transformation layers, and stores it in [PostgreSQL][postgresql-url], enabling efficient querying and analysis. Interactive dashboards in [Tableau][tableau-url] provide stakeholders with actionable insights for policy-making, environmental planning, and advocacy, offering a comprehensive view of the relationships between transportation patterns and air quality: [Tableau Dashboard][tableau-dashboard].
 
@@ -54,14 +54,14 @@ This project focuses on analyzing the impact of road traffic, air traffic, and w
 
 This project was created by the project group, consisting of three students, as part of a semester project for the Msc Applied Information & Data Science course in the Data Lake and Data Warehouse Systems module at the Lucerne University of Applied Sciences.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 
 ### Project idea
 
 This project focuses on building a scalable data infrastructure integrating an [AWS S3][aws-url] Data Lake and a [PostgreSQL][postgresql-url] Data Warehouse. Automated ELT pipelines extract, load, and transform data from APIs, preparing it for analysis. Materialized views aggregate data for efficient querying and visualization in [Tableau][tableau-url], enabling interactive dashboards for Business Intelligence and decision-making.
 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 
 
 ### Built With
@@ -69,8 +69,10 @@ This project focuses on building a scalable data infrastructure integrating an [
 * [![AWS][aws-shield]][aws-url]
 * [![PostgreSQL][postgresql-shield]][postgresql-url]
 * [![Tableau][tableau-shield]][tableau-url]
+* [![Docker][docker-shield]][docker-url]
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
 
 <!-- Data Scources -->
 ### Used Services
@@ -86,19 +88,20 @@ The project utilizes data from the following providers:
 <!-- Setup & Architectur -->
 ## Architecture
 
-The architecture for this project is structured into three main components, designed to seamlessly process and analyze data from multiple sources.
-[Architecture Overview](image/architecture_overview.png)
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+The architecture for this project is divided into three main components, which are designed to enable seamless processing and analysis of data from different sources: Data Lake, Data Warehouse and Business Intelligence.
+In the first two parts, the process follows an ELT approach, which extracts the data, loads it into the data lake and transforms the data so that it can be used for business intelligence purposes.
+[Architecture Overview](images/architecture_overview.png)
+
 
 ### Data Lake
-The **Data Lake** serves as a central repository for raw data collected from multiple APIs, organized in a scalable and structured manner:
-[ELT-process](image/ELT-process.png)
+The **Data Lake** serves as a central repository for raw data collected from multiple APIs, organized in a scalable and structured manner. The following process illustrates the procedure:
+[ELT-process](images/ELT-process.png)
 
 - **Storage**: Data is stored in an [AWS S3][aws-url] bucket with subfolders organized by data source (e.g., aviation, weather, traffic).
 - **Purpose**: Acts as a staging area for raw data to enable further transformations and ensure traceability.
 - **Structure**: Logical folder organization (e.g., by date and city) ensures efficient access and management.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 
 ### Data Warehouse
 The **Data Warehouse** is built using a [PostgreSQL][postgresql-url] database on [AWS RDS][aws-url] to enable efficient querying and analytics:
@@ -106,7 +109,7 @@ The **Data Warehouse** is built using a [PostgreSQL][postgresql-url] database on
 - **Materialized Views**: Aggregated daily-level data is prepared for visualization in [Tableau][tableau-url], optimizing query performance.
 - **Automation**: Data transformations and updates are orchestrated using [AWS Lambda][aws-url] and EventBridge, ensuring up-to-date and reliable data pipelines.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 
 ### Business Intelligence
 The **Business Intelligence** layer visualizes the processed data to provide actionable insights:
@@ -212,10 +215,10 @@ We would like to express our gratitude to the following organizations and indivi
 [license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
 [linkedin-shield-user1]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url-user1]: https://www.linkedin.com/in/user1
-[github-url-user1]: https://github.com/user1
+[github-url-user1]: https://github.com/lukasaebi
 [linkedin-shield-user2]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url-user2]: https://www.linkedin.com/in/user2
-[github-url-user2]: https://github.com/user2
+[github-url-user2]: https://github.com/timzoller
 [linkedin-shield-user3]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url-user3]: https://www.linkedin.com/in/carlo-scherrer-562b35225
 [Hochschule Luzern]: https://www.hslu.ch/de-ch/wirtschaft/studium/master/applied-information-and-data-science/
@@ -231,3 +234,5 @@ We would like to express our gratitude to the following organizations and indivi
 [openweather-url]: https://openweathermap.org/
 [here-url]: https://www.here.com/
 [tableau-dashboard]: https://public.tableau.com/views/AirPollution_analysis_TrioInfernale/Overview?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link
+[docker-shield]: https://img.shields.io/badge/Docker-blue.svg?style=for-the-badge&logo=docker&logoColor=white
+[docker-url]: https://www.docker.com/
