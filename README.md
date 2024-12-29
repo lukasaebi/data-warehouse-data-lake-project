@@ -90,12 +90,12 @@ The project utilizes data from the following providers:
 
 The architecture for this project is divided into three main components, which are designed to enable seamless processing and analysis of data from different sources: Data Lake, Data Warehouse and Business Intelligence.
 In the first two parts, the process follows an ELT approach, which extracts the data, loads it into the data lake and transforms the data so that it can be used for business intelligence purposes.
-[Architecture Overview](images/architecture_overview.png)
+![Architecture Overview](images/architecture_overview.png)
 
 
 ### Data Lake
 The **Data Lake** serves as a central repository for raw data collected from multiple APIs, organized in a scalable and structured manner. The following process illustrates the procedure:
-[ELT-process](images/ELT-process.png)
+![ELT-process](images/ELT-process.png)
 
 - **Storage**: Data is stored in an [AWS S3][aws-url] bucket with subfolders organized by data source (e.g., aviation, weather, traffic).
 - **Purpose**: Acts as a staging area for raw data to enable further transformations and ensure traceability.
