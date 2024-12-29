@@ -12,9 +12,12 @@ import boto3
 import pandas as pd
 import psycopg2
 import yaml
+from dotenv import load_dotenv
 from psycopg2.extensions import connection
 from pydantic import BaseModel
 from tqdm import tqdm
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -122,7 +125,8 @@ def create_table(conn: connection) -> None:
                 length FLOAT,
                 speed FLOAT,
                 freeflow FLOAT,
-                jamfactor FLOAT
+                jamfactor FLOAT,
+                UNIQUE(date, city, road)
             )
             """
         )
@@ -136,7 +140,7 @@ def insert_bulk_data_from_dataframe(conn, df: pd.DataFrame) -> None:
     df.to_csv(csv_buffer, index=False, header=True)
     csv_buffer.seek(0)
 
-    with conn.cursor() as cur:
+    with error_handler(conn) as cur:
         cur.copy_expert(
             """
             COPY road_traffic (date, city, road, length, speed, freeflow, jamfactor)
@@ -188,21 +192,31 @@ def delete_table(conn: connection) -> None:
         conn.commit()
 
 
-def save_dataframe(path: Path, df: pd.DataFrame) -> None:
-    """
-    Save a `pd.DataFrame` to a CSV file.
+def preprocess_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    df_copy = df.copy()
+    df_copy["speed_weighted"] = df_copy["speed"] * df_copy["length"]
+    df_copy["freeflow_weighted"] = df_copy["freeflow"] * df_copy["length"]
+    df_copy["jamfactor_weighted"] = df_copy["jamfactor"] * df_copy["length"]
 
-    Args:
-        path (Path): The path to save the CSV file.
-        df (pd.DataFrame): The DataFrame to save.
-    """
-    path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(path, index=False)
+    # Groupby and aggregate using vectorized operations
+    result = df_copy.groupby(["date", "city", "road"], as_index=False).agg(
+        length=("length", "sum"),
+        speed_weighted=("speed_weighted", "sum"),
+        freeflow_weighted=("freeflow_weighted", "sum"),
+        jamfactor_weighted=("jamfactor_weighted", "sum"),
+    )
+
+    # Compute final weighted averages
+    result["speed"] = result["speed_weighted"] / result["length"]
+    result["freeflow"] = result["freeflow_weighted"] / result["length"]
+    result["jamfactor"] = result["jamfactor_weighted"] / result["length"]
+
+    return result.drop(columns=["speed_weighted", "freeflow_weighted", "jamfactor_weighted"])
 
 
 def lambda_handler(event, context):
     config = Config.from_yaml(Path(__file__).absolute().parent / "config.yaml")
-    db_password = os.environ["DB_PASSWORD"]
+    db_password = "%*36ZK8E3U%Fz&TPz6s3"
     drop_table = event.get("drop_table", None)
     step = config.step_size
     year = event.get("year", None)
@@ -219,28 +233,20 @@ def lambda_handler(event, context):
         filepaths = [path for path in total_filepaths if f"{year}-{month}" in path]  # filter for year and month
         logger.info(f"Number of files to upload: {len(filepaths)}")
         logger.info(f"Files will be uploaded in batches of size {step}.")
+        total_rows = 0
         for i in tqdm(range(0, len(filepaths), step), desc="Uploading data to RDS..."):
             filepath_batch = list(islice(filepaths, i, i + step))
             df = create_bulk_df(filepath_batch, config.bucket_name)
-            logger.info(f"Iter {i}: Dataframe created.")
+            logger.info(f"Iter {i}: Dataframe created with shape {df.shape}.")
+            df = preprocess_dataframe(df)
+            logger.info(f"Iter {i}: Dataframe preprocessed. Shape after preprocessing {df.shape}.")
             insert_bulk_data_from_dataframe(conn, df)
-            logger.info(f"Iter {i}: Data inserted into Database.")
+            logger.info(f"Iter {i}: {df.shape[0]} rows inserted into Database.")
+            total_rows += df.shape[0]
 
     return {
         "statusCode": 200,
-        "body": json.dumps(f"Data for year `{year}` and month `{month}` uploaded to Database successfully."),
+        "body": json.dumps(
+            f"Data for year `{year}` and month `{month}` uploaded to Database successfully. {total_rows} inserted."
+        ),
     }
-
-
-def arg_parser():
-    parser = argparse.ArgumentParser(description="Load data to RDS.")
-    parser.add_argument("--drop-table", action="store_true", help="Drop the table before loading data.")
-    parser.add_argument("--year", type=str, help="Year to load data for.")
-    parser.add_argument("--month", type=str, help="Month to load data for.")
-    return parser.parse_args()
-
-
-if __name__ == "__main__":
-    args = arg_parser()
-    event = args.__dict__
-    lambda_handler(event, None)
