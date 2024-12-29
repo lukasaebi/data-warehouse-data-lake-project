@@ -4,25 +4,20 @@
 <!-- PROJECT SHIELDS -->
 [![Contributors][contributors-shield]][contributors-url]
 [![project_license][license-shield]][license-url]
-[![LinkedIn][linkedin-shield-user1]][linkedin-url-user1]
-[![LinkedIn][linkedin-shield-user2]][linkedin-url-user2]
-[![LinkedIn][linkedin-shield-user3]][linkedin-url-user3]
-
 
 
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
   <a href="https://github.com/github_username/repo_name">
-    <img src="images/logo.jpg" alt="Logo" width="80" height="80">
+    <img src="images/logo.jpg" alt="Logo" width="200" height="200">
   </a>
-
-<h3 align="center">Analysis of Road Traffic, Air Traffic, and Weather Conditions on Air Quality Around Airports</h3>
-
-  <p align="center">
-       This project focuses on analyzing the impact of road traffic, air traffic and weather conditions on air quality around major European airports. Using data from multiple APIs ([OpenWeather][openweather-url], [HERE Traffic][here-url] and [Aviation Edge][aviationedge-url]), the project developed a robust data pipeline and warehouse architecture within [AWS][aws-url]. The solution integrates raw data, processes it through transformation layers and stores it in [PostgreSQL][postgresql-url], enabling efficient querying and analysis. Interactive dashboards in [Tableau][tableau-url] provide stakeholders with actionable insights for policy-making, environmental planning, and advocacy, offering a comprehensive view of the relationships between transportation patterns and air quality: [Tableau Dashboard][tableau-dashboard].
-  </p>
 </div>
+
+## Analysis of Road Traffic, Air Traffic, and Weather Conditions on Air Quality Around Airports
+
+This project focuses on analyzing the impact of road traffic, air traffic, and weather conditions on air quality around major European airports. Using data from multiple APIs ([OpenWeather][openweather-url], [HERE Traffic][here-url], and [Aviation Edge][aviationedge-url]), the project developed a robust data pipeline and warehouse architecture within [AWS][aws-url]. The solution integrates raw data, processes it through transformation layers, and stores it in [PostgreSQL][postgresql-url], enabling efficient querying and analysis. Interactive dashboards in [Tableau][tableau-url] provide stakeholders with actionable insights for policy-making, environmental planning, and advocacy, offering a comprehensive view of the relationships between transportation patterns and air quality: [Tableau Dashboard][tableau-dashboard].
+
 
 
 <!-- TABLE OF CONTENTS -->
@@ -92,12 +87,13 @@ The project utilizes data from the following providers:
 ## Architecture
 
 The architecture for this project is structured into three main components, designed to seamlessly process and analyze data from multiple sources.
-![Architecture Overview](image/architecture_overview.png)
-![ELT-process](image/ELT-process.png)
+[Architecture Overview](image/architecture_overview.png)
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Data Lake
 The **Data Lake** serves as a central repository for raw data collected from multiple APIs, organized in a scalable and structured manner:
+[ELT-process](image/ELT-process.png)
+
 - **Storage**: Data is stored in an [AWS S3][aws-url] bucket with subfolders organized by data source (e.g., aviation, weather, traffic).
 - **Purpose**: Acts as a staging area for raw data to enable further transformations and ensure traceability.
 - **Structure**: Logical folder organization (e.g., by date and city) ensures efficient access and management.
@@ -222,6 +218,7 @@ We would like to express our gratitude to the following organizations and indivi
 [github-url-user2]: https://github.com/user2
 [linkedin-shield-user3]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url-user3]: https://www.linkedin.com/in/carlo-scherrer-562b35225
+[Hochschule Luzern]: https://www.hslu.ch/de-ch/wirtschaft/studium/master/applied-information-and-data-science/
 [github-url-user3]: https://github.com/Carlomk1
 [repo-url]: https://github.com/lukasaebi/data-warehouse-data-lake-project
 [aws-shield]: https://img.shields.io/badge/AWS-orange.svg?style=for-the-badge
