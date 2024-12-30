@@ -1,6 +1,6 @@
 {
-    "FunctionName": "load_data_to_rds",
-    "Timeout": 120,
+    "FunctionName": "here_load_data_to_rds_daily",
+    "Timeout": 180,
     "MemorySize": 128,
     "EphemeralStorage": {
         "Size": 512

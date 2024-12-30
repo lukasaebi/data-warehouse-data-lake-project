@@ -1,4 +1,3 @@
-import argparse
 import json
 import logging
 import os
@@ -155,6 +154,28 @@ def create_bulk_df(filepaths: list[str], bucket_name: str) -> None:
     return pd.DataFrame(total_data, columns=["date", "city", "road", "length", "speed", "freeflow", "jamfactor"])
 
 
+def preprocess_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    df_copy = df.copy()
+    df_copy["speed_weighted"] = df_copy["speed"] * df_copy["length"]
+    df_copy["freeflow_weighted"] = df_copy["freeflow"] * df_copy["length"]
+    df_copy["jamfactor_weighted"] = df_copy["jamfactor"] * df_copy["length"]
+
+    # Groupby and aggregate using vectorized operations
+    result = df_copy.groupby(["date", "city", "road"], as_index=False).agg(
+        length=("length", "sum"),
+        speed_weighted=("speed_weighted", "sum"),
+        freeflow_weighted=("freeflow_weighted", "sum"),
+        jamfactor_weighted=("jamfactor_weighted", "sum"),
+    )
+
+    # Compute final weighted averages
+    result["speed"] = result["speed_weighted"] / result["length"]
+    result["freeflow"] = result["freeflow_weighted"] / result["length"]
+    result["jamfactor"] = result["jamfactor_weighted"] / result["length"]
+
+    return result.drop(columns=["speed_weighted", "freeflow_weighted", "jamfactor_weighted"])
+
+
 def lambda_handler(event, context):
     config = Config.from_yaml(Path(__file__).absolute().parent / "config.yaml")
     db_password = os.environ["DB_PASSWORD"]
@@ -167,7 +188,9 @@ def lambda_handler(event, context):
         if filepaths:
             logger.info(f"Number of files to upload: {len(filepaths)}")
             df = create_bulk_df(filepaths, config.bucket_name)
-            logger.info(f"Dataframe to upload created with shape {df.shape}...")
+            logger.info(f"Dataframe created with shape {df.shape}.")
+            df = preprocess_dataframe(df)
+            logger.info(f"Dataframe preprocessed. Shape after preprocessing {df.shape}.")
             insert_bulk_data_from_dataframe(conn, df)
             logger.info("Data successfully inserted into Database.")
             return {

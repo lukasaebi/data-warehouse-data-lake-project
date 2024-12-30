@@ -1,5 +1,5 @@
 {
-    "FunctionName": "load_data_to_rds",
+    "FunctionName": "here_load_data_to_rds",
     "Timeout": 900,
     "MemorySize": 512,
     "EphemeralStorage": {
