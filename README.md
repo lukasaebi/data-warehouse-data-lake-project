@@ -140,19 +140,43 @@ The first page introduces the project by highlighting the topic and research are
 
 #### 2. Emission Index Dashboard
 This page focuses on detailed insights into various emissions and their trends across cities. It allows stakeholders to analyze emission patterns and their variations over time, contributing to a better understanding of air quality factors.
-![Emission Level Index](images/emission_level_dashboard.png)
+
+<details>
+  <summary>View Screenshots</summary>
+  
+  ![Emission Level Index](images/emission_level_dashboard.png)
+
+</details>
 
 #### 3. Traffic Dashboard
-This page examines traffic data in detail, presenting patterns for specific locations. 
-![Traffic Dashboard](images/traffic_dashboard.png)
+This page examines traffic data in detail, presenting patterns for specific locations.
+
+<details>
+  <summary>View Screenshots</summary>
+  
+  ![Traffic Dashboard](images/traffic_dashboard.png)
+
+</details>
 
 #### 3. Traffic ~ Air Quality Dashboard
 This dashboard explores the relationship between traffic (road and flight) and air quality. It combines data to demonstrate how changes in traffic intensity correlate with fluctuations in air quality, providing actionable insights.
-![Traffic and Air Quality](images/traffic_impact_dashboard.png)
+
+<details>
+  <summary>View Screenshots</summary>
+
+  ![Traffic and Air Quality](images/traffic_impact_dashboard.png)
+
+</details>
 
 #### 3. Weather ~ Air Quality Dashboard
 This page investigates the role of weather conditions on air quality, presenting correlations between weather parameters (e.g. temperature, wind speed, weather types) and air pollution levels. It helps contextualize how environmental factors mitigate or exacerbate pollution.
-![Weather and Air Quality](images/weather_impact_dashboard.png)
+
+<details>
+  <summary>View Screenshots</summary>
+
+  ![Weather and Air Quality](images/weather_impact_dashboard.png)
+
+</details>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
