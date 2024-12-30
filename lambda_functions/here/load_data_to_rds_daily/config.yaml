@@ -5,4 +5,3 @@ port: 5432
 user: postgres
 bucket_name: hslu-project-data
 base_path: here/traffic_volume
-step_size: 110
