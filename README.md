@@ -125,17 +125,18 @@ The **Business Intelligence** layer visualizes the processed data to provide act
 
 This project provides interactive visualizations to explore the impact of road traffic, air traffic, and weather conditions on air quality. The dashboards are published on Tableau Public and are accessible via the link below:
 
-<details>
-  <summary>View Screenshots</summary>
-
-  [View the Tableau Public Dashboard](tableau-dashboard)
-  
-</details>
+[View the Tableau Public Dashboard](tableau-dashboard)
 
 ### Screenshots of Dashboards:
 #### 1. Overview Dashboard
-The first page introduces the project by highlighting the topic and research area while giving users general information about the data sources, timeframes and key metrics. 
-![Overview Dashboard](images/overview_dashboard.png)
+The first page introduces the project by highlighting the topic and research area while giving users general information about the data sources, timeframes and key metrics.
+
+<details>
+  <summary>View Screenshots</summary>
+  
+  ![Overview Dashboard](images/overview_dashboard.png)
+
+</details>
 
 #### 2. Emission Index Dashboard
 This page focuses on detailed insights into various emissions and their trends across cities. It allows stakeholders to analyze emission patterns and their variations over time, contributing to a better understanding of air quality factors.
