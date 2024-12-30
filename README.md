@@ -125,7 +125,12 @@ The **Business Intelligence** layer visualizes the processed data to provide act
 
 This project provides interactive visualizations to explore the impact of road traffic, air traffic, and weather conditions on air quality. The dashboards are published on Tableau Public and are accessible via the link below:
 
-[View the Tableau Public Dashboard](tableau-dashboard)
+<details>
+  <summary>View Screenshots</summary>
+
+  [View the Tableau Public Dashboard](tableau-dashboard)
+  
+</details>
 
 ### Screenshots of Dashboards:
 #### 1. Overview Dashboard
