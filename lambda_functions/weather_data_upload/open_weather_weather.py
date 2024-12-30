@@ -9,14 +9,14 @@ import json
 with open("config.json", "r") as file:
     config = json.load(file)
 
-#AWS S3 Client initialisieren
+#AWS S3 Client initialize
 s3_client = boto3.client("s3")
 
-# API-Schlüssel aus der .env-Datei laden
 
-# Prüfen, ob der Code lokal ausgeführt wird
+
+# Check whether the code is executed locally
 if not os.getenv("AWS_EXECUTION_ENV"):
-    load_dotenv()  # Laden Sie .env nur lokal
+    load_dotenv()  
 
 
 
@@ -35,8 +35,7 @@ for city in cities_data:
     city_name = city["city_name"]
     coordinates[city_name] = {"lat":city["lat"], "lon": city["lon"]}
 
-# Berechne den Unix-Zeitstempel von vor 24 Stunden
-#start = current_time - (7*86400)  # 24 Stunden = 86400 Sekunden
+
 
 def fetch_latest_file_from_s3(s3_client, bucket_name):
     """
@@ -48,7 +47,7 @@ def fetch_latest_file_from_s3(s3_client, bucket_name):
             print("Keine Dateien im Bucket gefunden.")
             return None
         
-        # Neueste Datei anhand des letzten Modifizierungsdatums auswählen
+        # Select the latest file based on the last modification date
         latest_file = max(response['Contents'], key=lambda x: x['LastModified'])
         return latest_file['Key']
     except Exception as e:
@@ -73,18 +72,27 @@ def fetch_existing_data_from_s3(s3_client, bucket_name, key):
 
 
 def determine_new_time_range(existing_data, current_time):
+    """
+    Bestimmt die fehlenden Zeitbereiche ab dem 1. Dezember 2023.
+    """
+    # Startingpoint: 1. Dezember 2023, 00:00 UTC
+    start_time = int(datetime(2023, 12, 1, 0, 0, 0, tzinfo=timezone.utc).timestamp())
+
     if not existing_data:
-        # Keine bestehenden Daten vorhanden, 1 Jahr Daten abrufen
-        return [(current_time - (week + 1) * 7 * 86400, current_time - week * 7 * 86400) for week in range(52)]
+        # No existing data available, create time ranges from the starting point
+        return [(start_time + week * 7 * 86400, start_time + (week + 1) * 7 * 86400 - 1) for week in range((current_time - start_time) // (7 * 86400) + 1)]
     
-    # Bestimmen des jüngsten Zeitstempels aus den bestehenden Daten
+    # Determine the most recent timestamp from the existing data
     latest_timestamp = max(record['timestamp'] for record in existing_data)
     
-    # Erstelle neue Zeitintervalle ab dem jüngsten Zeitstempel
+    # Startingpoint sicherstellen
+    latest_timestamp = max(latest_timestamp, start_time)
+    
+    # Create new time intervals from the most recent timestamp
     new_time_ranges = []
     one_week_in_seconds = 7 * 86400
     while latest_timestamp < current_time:
-        start = latest_timestamp + 1  # Beginne direkt nach dem letzten Zeitstempel
+        start = latest_timestamp + 1  
         end = min(current_time, start + one_week_in_seconds - 1)
         new_time_ranges.append((start, end))
         latest_timestamp = end
@@ -92,14 +100,17 @@ def determine_new_time_range(existing_data, current_time):
 
 
 def fetch_weather(coordinates, api_key, time_ranges):
-    all_data = []  # Liste zum Speichern der Daten in flacher Struktur
+    """
+    Ruft Wetterdaten für die angegebenen Zeitbereiche ab und filtert nur Daten von 6:00 bis 9:00 Uhr UTC.
+    """
+    all_data = []  # List for saving the data in a flat structure
 
     for place, coord in coordinates.items():
         lat = coord['lat']
         lon = coord['lon']
 
         for start, end in time_ranges:
-            # API-Aufruf für historische Wetterdaten
+            # API call for historical weather data
             api_url = f"https://history.openweathermap.org/data/2.5/history/city?lat={lat}&lon={lon}&type=day&start={start}&end={end}&appid={api_key}"
 
             try:
@@ -108,33 +119,40 @@ def fetch_weather(coordinates, api_key, time_ranges):
                 if response.status_code == 200:
                     data = response.json()
                     
-                    # Iteriere durch jeden Dateneintrag und extrahiere relevante Felder
+                    # Iterate through each data entry and extract relevant fields
                     for entry in data.get('list', []):
-                        record = {
-                            "place": place,
-                            "latitude": lat,
-                            "longitude": lon,
-                            "timestamp": entry.get("dt"),
-                            "date": time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(entry['dt'])),
-                            "temperature": entry["main"]["temp"],
-                            "humidity": entry["main"]["humidity"],
-                            "pressure": entry["main"]["pressure"],
-                            "wind_speed": entry["wind"]["speed"],
-                            "weather_main": entry["weather"][0]["main"],
-                            "weather_description": entry["weather"][0]["description"]
-                        }
-                        # Füge den einzelnen Datensatz der flachen Datenstruktur hinzu
-                        all_data.append(record)
+                        observation_time = datetime.utcfromtimestamp(entry.get("dt"))
+                        hour = observation_time.hour
+
+                        # Filter only data between 6:00 and 9:00 a.m.
+                        if 6 <= hour < 10:
+                            record = {
+                                "place": place,
+                                "latitude": lat,
+                                "longitude": lon,
+                                "timestamp": entry.get("dt"),
+                                "date": observation_time.strftime('%Y-%m-%d %H:%M:%S'),
+                                "temperature": entry["main"]["temp"],
+                                "humidity": entry["main"]["humidity"],
+                                "pressure": entry["main"]["pressure"],
+                                "wind_speed": entry["wind"]["speed"],
+                                "weather_main": entry["weather"][0]["main"],
+                                "weather_description": entry["weather"][0]["description"]
+                            }
+                            # Add the individual data set to the flat data structure
+                            all_data.append(record)
                 else:
-                    print(f"Fehlerhafte Anfrage für {place} ({lat}, {lon}). Statuscode: {response.status_code}")
+                    # Debugging faulty requests
+                    print(f"Fehlerhafte Anfrage für {place} ({lat}, {lon}). Statuscode: {response.status_code}, Antwort: {response.text}")
 
             except requests.exceptions.RequestException as e:
                 print(f"Ein Fehler ist aufgetreten für {place} ({lat}, {lon}): {e}")
 
-    # Debugging-Ausgabe: Anzahl der Datensätze
+    # Debugging output: Number of data records
     print(f"Anzahl der neuen Datensätze abgerufen: {len(all_data)}")
     
-    return all_data  # Gib die gesammelten Daten in flacher Struktur zurück
+    return all_data   # Return the collected data in a flat structure
+
 
 
 def lambda_handler(event, context):
@@ -144,25 +162,25 @@ def lambda_handler(event, context):
             "body": "API_KEY oder S3 Bucket Name fehlen"
         }
 
-    # S3-Schlüssel definieren
-    s3_key = "weather_data.json"
+    # S3-Schlüssel definition
+    s3_key = "wetter/weather_data.json"
     
-    # Bestehende Daten abrufen
+    # Retrieve existing data
     existing_data = fetch_existing_data_from_s3(s3_client, S3_BUCKET_NAME, s3_key)
     
-    # Aktuelle Zeit bestimmen
+    # Determine current time
     current_time = int(time.time())
     
-    # Zeitintervalle bestimmen
+    # Determine time intervals
     time_ranges = determine_new_time_range(existing_data, current_time)
     
-    # Neue Daten abrufen
+    # Retrieve new data
     new_data = fetch_weather(coordinates, api_key, time_ranges)
     
-    # Neue Daten zu bestehenden Daten hinzufügen
+    # Add new data to existing data
     combined_data = existing_data + new_data
 
-    #JSON-Daten in S3Bucket hochladen
+    #Upload JSON data to S3Bucket
 
     try:
         s3_client.put_object(
