@@ -1,0 +1,8 @@
+{
+    "FunctionName": "update_mv_database",
+    "Timeout": 900,
+    "MemorySize": 1024,
+    "EphemeralStorage": {
+        "Size": 1024
+    }
+}

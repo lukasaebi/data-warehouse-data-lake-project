@@ -1,0 +1,8 @@
+cities: ["Amsterdam", "Dublin", "Frankfurt", "Lisbon", "London1", "London2", "Madrid", "Moscow", "Paris", "Rome", "Vienna", "Zurich"]
+dbname: master
+host: "database-1.czvyaxqqhlav.us-east-1.rds.amazonaws.com"
+port: 5432
+user: postgres
+bucket_name: hslu-project-data
+base_path: aviations3/departures
+size_threshold: 500  # MB

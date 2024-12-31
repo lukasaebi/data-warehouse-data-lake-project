@@ -1,0 +1,5 @@
+{
+    "FunctionName": "zurich_departure_lambda",
+    "Timeout": 840,
+    "MemorySize": 512
+}

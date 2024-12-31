@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Liste der Buckets
-BUCKETS=("freunds-bucket-1" "freunds-bucket-2" "freunds-bucket-3")
+BUCKETS=("aviations3")
 
 # JSON-Datei mit der Richtlinie
 POLICY_FILE="bucket-policy.json"

@@ -1,4 +1,4 @@
 cities: ["London", "Paris", "Madrid", "Frankfurt am Main", "Zürich", "Moscow", "Amsterdam", "Lisbon", "Rome", "Dublin", "Vienna"]
 country_codes: ["GBR", "FRA", "ESP", "DEU", "CHE", "RUS", "NLD", "PRT", "ITA", "IRL", "AUT"]
-iatacodes: ["BQH", "LCY", "LGW", "LHR", "LTN", "SEN", "STN", "BVA", "CDG", "LBG", "ORY", "POX", "XCR", "AMS", "MAD", "TOJ", "FRA", "HHN", "CIA", "FCO", "DME", "SVO", "VKO", "LIS", "DUB", "VIE", "ZRH"]
+iatacodes: ["LCY", "LGW", "LHR", "LTN", "SEN", "STN", "BVA", "CDG", "ORY","AMS", "MAD", "FRA", "HHN", "FCO", "DME", "SVO", "VKO", "LIS", "DUB", "VIE", "ZRH"]
 bucket_name: aviations3
