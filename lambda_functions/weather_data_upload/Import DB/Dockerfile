@@ -7,9 +7,11 @@ COPY requirements.txt ${LAMBDA_TASK_ROOT}
 RUN pip install -r requirements.txt
 
 # Copy function code
-COPY open_weather_pollution.py ${LAMBDA_TASK_ROOT}
+COPY import_s3_to_postgres.py ${LAMBDA_TASK_ROOT}
+
 
 COPY config.json ${LAMBDA_TASK_ROOT}
 
+
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
-CMD [ "open_weather_pollution.lambda_handler" ]
+CMD [ "import_s3_to_postgres.lambda_handler" ]
