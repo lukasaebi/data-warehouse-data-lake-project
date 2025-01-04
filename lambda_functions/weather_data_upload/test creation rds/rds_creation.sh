@@ -2,14 +2,14 @@
 
 set -e
 
-# Funktion für das Protokollieren von Nachrichten
+# Function for logging messages
 log() {
     echo "$(date +'%Y-%m-%d %H:%M:%S') - $1"
 }
 
-# Validieren von Umgebungsvariablen
+# Validating environment variables
 validate_env_vars() {
-    REQUIRED_VARS=("AWS_REGION" "DB_INSTANCE_IDENTIFIER" "DB_INSTANCE_CLASS" "ENGINE" 
+    REQUIRED_VARS=("AWS_REGION" "DB_INSTANCE_IDENTIFIER" "DB_INSTANCE_CLASS" "ENGINE"
                    "ALLOCATED_STORAGE" "RDS_USER" "RDS_PASSWORD" "SECURITY_GROUP_ID")
     for var in "${REQUIRED_VARS[@]}"; do
         if [ -z "${!var}" ]; then
@@ -19,7 +19,7 @@ validate_env_vars() {
     done
 }
 
-# RDS-Instanz erstellen
+# RDS-Instance creation
 create_rds_instance() {
     log "Erstelle RDS-Instanz '$DB_INSTANCE_IDENTIFIER'..."
     aws rds create-db-instance \
@@ -38,13 +38,13 @@ create_rds_instance() {
         --storage-type gp2
 }
 
-# Warten, bis die Instanz verfügbar ist
+# Wait until the instance is available
 wait_for_rds() {
     log "Warte auf die Verfügbarkeit der RDS-Instanz..."
     aws rds wait db-instance-available --db-instance-identifier "$DB_INSTANCE_IDENTIFIER"
 }
 
-# RDS-Endpunkt abrufen
+# Retrieve RDS endpoint
 fetch_rds_endpoint() {
     log "Abrufen des RDS-Endpunkts..."
     DB_ENDPOINT=$(aws rds describe-db-instances \
@@ -54,7 +54,7 @@ fetch_rds_endpoint() {
     log "Die RDS-Instanz '$DB_INSTANCE_IDENTIFIER' ist unter dem Endpunkt erreichbar: $DB_ENDPOINT"
 }
 
-# Umgebungsvariablen laden
+# Load environment variables
 log "Lade Umgebungsvariablen aus .env-Datei..."
 if [ -f ".env" ]; then
     export $(grep -v '^#' .env | xargs)
@@ -63,10 +63,10 @@ else
     exit 1
 fi
 
-# Validieren der Umgebungsvariablen
+# Validating the environment variables
 validate_env_vars
 
-# RDS-Instanz erstellen und Endpunkt abrufen
+# Create RDS instance and retrieve endpoint
 create_rds_instance
 wait_for_rds
 fetch_rds_endpoint
