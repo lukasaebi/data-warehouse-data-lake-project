@@ -3,7 +3,7 @@
 
 <!-- PROJECT SHIELDS -->
 [![Contributors][contributors-shield]][contributors-url]
-[![project_license][license-shield]][license-url]
+[![Stargazers][stars-shield]][stars-url]
 
 
 <!-- PROJECT LOGO -->
@@ -158,7 +158,7 @@ This page examines traffic data in detail, presenting patterns for specific loca
 
 </details>
 
-#### 3. Traffic ~ Air Quality Dashboard
+#### 4. Traffic ~ Air Quality Dashboard
 This dashboard explores the relationship between traffic (road and flight) and air quality. It combines data to demonstrate how changes in traffic intensity correlate with fluctuations in air quality, providing actionable insights.
 
 <details>
@@ -168,7 +168,7 @@ This dashboard explores the relationship between traffic (road and flight) and a
 
 </details>
 
-#### 3. Weather ~ Air Quality Dashboard
+#### 5. Weather ~ Air Quality Dashboard
 This page investigates the role of weather conditions on air quality, presenting correlations between weather parameters (e.g. temperature, wind speed, weather types) and air pollution levels. It helps contextualize how environmental factors mitigate or exacerbate pollution.
 
 <details>
@@ -212,13 +212,13 @@ This page investigates the role of weather conditions on air quality, presenting
 **Contributors:**
 
 - **Lukas Aebi**  
-  [LinkedIn][linkedin-url-user1] | [GitHub][github-url-user1]
+  [GitHub][github-url-user1]
 
 - **Tim Zoller**  
-  [LinkedIn][linkedin-url-user2] | [GitHub][github-url-user2]
+  [GitHub][github-url-user2]
 
 - **Carlo Scherrer**  
-  [LinkedIn][linkedin-url-user3] | [GitHub][github-url-user3]
+  [GitHub][github-url-user3] | [LinkedIn][linkedin-url-user3]
 
 Project Link: [Data Warehouse Data Lake Project][repo-url]
 
@@ -241,8 +241,8 @@ We would like to express our gratitude to the following organizations and indivi
 <!-- MARKDOWN LINKS & IMAGES -->
 [contributors-shield]: https://img.shields.io/github/contributors/github_username/repo_name.svg?style=for-the-badge
 [contributors-url]: https://github.com/lukasaebi/data-warehouse-data-lake-project/graphs/contributors
-[license-shield]: https://img.shields.io/github/license/github_username/repo_name.svg?style=for-the-badge
-[license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
+[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge
+[stars-url]: https://github.com/lukasaebi/data-warehouse-data-lake-project/stargazers
 [linkedin-shield-user1]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url-user1]: https://www.linkedin.com/in/user1
 [github-url-user1]: https://github.com/lukasaebi
