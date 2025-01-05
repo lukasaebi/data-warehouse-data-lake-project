@@ -3,7 +3,7 @@
 
 <!-- PROJECT SHIELDS -->
 [![Contributors][contributors-shield]][contributors-url]
-[![project_license][license-shield]][license-url]
+[![Stargazers][stars-shield]][stars-url]
 
 
 <!-- PROJECT LOGO -->
@@ -132,7 +132,7 @@ This project provides interactive visualizations to explore the impact of road t
 The first page introduces the project by highlighting the topic and research area while giving users general information about the data sources, timeframes and key metrics.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
   
   ![Overview Dashboard](images/overview_dashboard.png)
 
@@ -142,7 +142,7 @@ The first page introduces the project by highlighting the topic and research are
 This page focuses on detailed insights into various emissions and their trends across cities. It allows stakeholders to analyze emission patterns and their variations over time, contributing to a better understanding of air quality factors.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
   
   ![Emission Level Index](images/emission_level_dashboard.png)
 
@@ -152,27 +152,27 @@ This page focuses on detailed insights into various emissions and their trends a
 This page examines traffic data in detail, presenting patterns for specific locations.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
   
   ![Traffic Dashboard](images/traffic_dashboard.png)
 
 </details>
 
-#### 3. Traffic ~ Air Quality Dashboard
+#### 4. Traffic ~ Air Quality Dashboard
 This dashboard explores the relationship between traffic (road and flight) and air quality. It combines data to demonstrate how changes in traffic intensity correlate with fluctuations in air quality, providing actionable insights.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
 
   ![Traffic and Air Quality](images/traffic_impact_dashboard.png)
 
 </details>
 
-#### 3. Weather ~ Air Quality Dashboard
+#### 5. Weather ~ Air Quality Dashboard
 This page investigates the role of weather conditions on air quality, presenting correlations between weather parameters (e.g. temperature, wind speed, weather types) and air pollution levels. It helps contextualize how environmental factors mitigate or exacerbate pollution.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
 
   ![Weather and Air Quality](images/weather_impact_dashboard.png)
 
@@ -212,13 +212,13 @@ This page investigates the role of weather conditions on air quality, presenting
 **Contributors:**
 
 - **Lukas Aebi**  
-  [LinkedIn][linkedin-url-user1] | [GitHub][github-url-user1]
+  [GitHub][github-url-user1]
 
 - **Tim Zoller**  
-  [LinkedIn][linkedin-url-user2] | [GitHub][github-url-user2]
+  [GitHub][github-url-user2]
 
 - **Carlo Scherrer**  
-  [LinkedIn][linkedin-url-user3] | [GitHub][github-url-user3]
+  [GitHub][github-url-user3] | [LinkedIn][linkedin-url-user3]
 
 Project Link: [Data Warehouse Data Lake Project][repo-url]
 
@@ -241,8 +241,8 @@ We would like to express our gratitude to the following organizations and indivi
 <!-- MARKDOWN LINKS & IMAGES -->
 [contributors-shield]: https://img.shields.io/github/contributors/github_username/repo_name.svg?style=for-the-badge
 [contributors-url]: https://github.com/lukasaebi/data-warehouse-data-lake-project/graphs/contributors
-[license-shield]: https://img.shields.io/github/license/github_username/repo_name.svg?style=for-the-badge
-[license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
+[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge
+[stars-url]: https://github.com/lukasaebi/data-warehouse-data-lake-project/stargazers
 [linkedin-shield-user1]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url-user1]: https://www.linkedin.com/in/user1
 [github-url-user1]: https://github.com/lukasaebi
