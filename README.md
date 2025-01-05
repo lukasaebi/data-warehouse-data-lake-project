@@ -132,7 +132,7 @@ This project provides interactive visualizations to explore the impact of road t
 The first page introduces the project by highlighting the topic and research area while giving users general information about the data sources, timeframes and key metrics.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
   
   ![Overview Dashboard](images/overview_dashboard.png)
 
@@ -142,7 +142,7 @@ The first page introduces the project by highlighting the topic and research are
 This page focuses on detailed insights into various emissions and their trends across cities. It allows stakeholders to analyze emission patterns and their variations over time, contributing to a better understanding of air quality factors.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
   
   ![Emission Level Index](images/emission_level_dashboard.png)
 
@@ -152,7 +152,7 @@ This page focuses on detailed insights into various emissions and their trends a
 This page examines traffic data in detail, presenting patterns for specific locations.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
   
   ![Traffic Dashboard](images/traffic_dashboard.png)
 
@@ -162,7 +162,7 @@ This page examines traffic data in detail, presenting patterns for specific loca
 This dashboard explores the relationship between traffic (road and flight) and air quality. It combines data to demonstrate how changes in traffic intensity correlate with fluctuations in air quality, providing actionable insights.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
 
   ![Traffic and Air Quality](images/traffic_impact_dashboard.png)
 
@@ -172,7 +172,7 @@ This dashboard explores the relationship between traffic (road and flight) and a
 This page investigates the role of weather conditions on air quality, presenting correlations between weather parameters (e.g. temperature, wind speed, weather types) and air pollution levels. It helps contextualize how environmental factors mitigate or exacerbate pollution.
 
 <details>
-  <summary>View Screenshots</summary>
+  <summary>View Screenshot</summary>
 
   ![Weather and Air Quality](images/weather_impact_dashboard.png)
 
